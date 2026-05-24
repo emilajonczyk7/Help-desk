@@ -1,0 +1,1 @@
+<?php echo "Środowisko Help Desk działa!"; ?>
