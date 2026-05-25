@@ -9,6 +9,23 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['
     exit;
 }
 
+// stronicowanie (15 na str)
+
+$limit = 15;
+
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+
+$offset = ($page - 1) * $limit;
+
+// zliczanie zgłoszeń w bazie potrzebne na przeliczenie str
+$zapytanie_count = "SELECT COUNT(id) AS total FROM tickets";
+$wynik_count = mysqli_query($conn, $zapytanie_count);
+$row_count = mysqli_fetch_assoc($wynik_count);
+$total_tickets = $row_count['total'];
+
+// Obliczanie liczby stron  
+$total_pages = ceil($total_tickets / $limit);
+
 // wyciąganie danych z bazy z podmianą kategorii i użytkownika (z id na nazwy)
 $zapytanie_zdloszenia = "
     SELECT 
@@ -24,6 +41,7 @@ $zapytanie_zdloszenia = "
     LEFT JOIN users u1 ON t.created_by = u1.id
     LEFT JOIN users u2 ON t.assigned_to = u2.id
     ORDER BY t.id DESC
+    LIMIT $limit OFFSET $offset
 ";
 
 $wynik = mysqli_query($conn, $zapytanie_zdloszenia);
@@ -124,5 +142,17 @@ $wynik = mysqli_query($conn, $zapytanie_zdloszenia);
         }
         ?>
     </table>
+    <?php if ($total_pages > 1): ?>
+        <div style="margin-top: 20px;">
+            <b>Strony: </b>
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <?php if ($i == $page): ?>
+                    <span style="padding: 5px 10px; background-color: #ddd; border: 1px solid #999; font-weight: bold;"><?php echo $i; ?></span>
+                <?php else: ?>
+                    <a href="tickets_list.php?page=<?php echo $i; ?>" style="padding: 5px 10px; border: 1px solid #ccc; text-decoration: none; color: black;"><?php echo $i; ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+        </div>
+    <?php endif; ?>
 </body>
 </html>
