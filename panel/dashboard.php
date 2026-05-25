@@ -31,6 +31,7 @@ $role = $_SESSION['role'];
         if ($role == 'admin') {
             echo '<li><a href="users_list.php">Zarządzanie użytkownikami</a></li>';
             echo '<li><a href="categories.php">Kategorie zgłoszeń</a></li>';
+            echo '<li><a href="reports.php">Raporty i statystyki systemu</a></li>';
         }
         
         // Linki widoczne dla pracownika (user) oraz administratora (admin)

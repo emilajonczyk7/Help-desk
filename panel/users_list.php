@@ -9,7 +9,7 @@ if ($_SESSION['role'] != 'admin') {
     exit;
 }
 
-// Pobieranie wszystkich użytkowników z bazy
+// pobieranie użytkowników z bazy
 $zapytanie = "SELECT id, username, email, role, active FROM users ORDER BY id DESC";
 $result = $conn->query($zapytanie);
 ?>
@@ -23,6 +23,20 @@ $result = $conn->query($zapytanie);
 <body>
     <h2>Zarządzanie użytkownikami</h2>
     
+    <?php
+    // wyświetlanie komunikatów z sesji
+    if (isset($_SESSION['success_message'])) {
+        echo "<p style='color: green; background-color: #e6f4ea; padding: 10px; border: 1px solid green; width: 450px;'>";
+        echo $_SESSION['success_message'];
+        echo "</p>";
+        unset($_SESSION['success_message']);
+    }
+    if (isset($_SESSION['error_message'])) {
+        echo "<p style='color: red;'><b>" . $_SESSION['error_message'] . "</b></p>";
+        unset($_SESSION['error_message']);
+    }
+    ?>
+
     <p>
         <a href="dashboard.php">Powrót do panelu</a> | 
         <a href="user_add.php">Dodaj nowego użytkownika</a>
@@ -42,34 +56,41 @@ $result = $conn->query($zapytanie);
         // czy w bazie są jacyś użytkownicy
         if ($result->num_rows > 0) {
             
+            // PĘTLA GENERUJĄCA WIERSZE W TABELI
             while($row = $result->fetch_assoc()) {
                 echo "<tr>";
+                
+                // ID
                 echo "<td>" . $row['id'] . "</td>";
+                
+                // login
                 echo "<td>" . $row['username'] . "</td>";
+                
+                // email
                 echo "<td>" . $row['email'] . "</td>";
                 
-                // Sprawdzanie i wyświetlanie roli 
+                // rola
                 echo "<td>";
-                if ($row['role'] == 'admin') {
-                    echo "Administrator";
-                } else if ($row['role'] == 'user') {
-                    echo "Pracownik (User)";
-                } else {
-                    echo "Klient (Guest)";
-                }
+                if ($row['role'] == 'admin') echo "Administrator";
+                elseif ($row['role'] == 'user') echo "Pracownik (User)";
+                else echo "Klient (Guest)";
                 echo "</td>";
                 
-                // Sprawdzanie statusu konta 
+                // status konta
                 echo "<td>";
                 if ($row['active'] == 1) {
-                    echo "<span style='color:green;'>Aktywne</span>";
+                    echo "<span style='color: green;'>Aktywne</span>";
                 } else {
-                    echo "<span style='color:red;'>Zablokowane</span>";
+                    echo "<span style='color: gray;'>Zablokowane</span>";
                 }
                 echo "</td>";
                 
-                // Link do edycji z doklejonym ID użytkownika
-                echo "<td><a href='user_edit.php?id=" . $row['id'] . "'>Edytuj</a></td>";
+                // akcje
+                echo "<td>";
+                echo "<a href='user_edit.php?id=" . $row['id'] . "'>Edytuj</a> | ";
+                echo "<a href='user_reset_password.php?id=" . $row['id'] . "' onclick='return confirm(\"Czy na pewno chcesz zresetować hasło temu użytkownikowi na tymczasowe: Start123!\")' style='color: red;'>Reset hasła</a>";
+                echo "</td>";
+                
                 echo "</tr>";
             }
             

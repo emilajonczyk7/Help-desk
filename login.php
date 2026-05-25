@@ -63,5 +63,17 @@ if (isset($_POST['submit_login'])) {
         
         <input type="submit" name="submit_login" value="Zaloguj">
     </form>
+
+    <br>
+    <hr style="width: 300px; margin-left: 0;">
+    
+    <p>
+        Nie masz jeszcze konta w systemie? <br>
+        <a href="register.php">Kliknij tutaj, aby się zarejestrować (Klient)</a><br><br>
+        
+        Chcesz tylko sprawdzić status zgłoszenia? <br>
+        <a href="ticket_status.php">Sprawdź status jako Gość</a>
+    </p>
+
 </body>
 </html>
