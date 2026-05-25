@@ -38,12 +38,24 @@ $wynik = mysqli_query($conn, $zapytanie_zdloszenia);
 <body>
     <h2>Wszystkie zgłoszenia (Tickety)</h2>
     
+    <?php
+    // Wyświetlanie komunikatów z sesji (np. po pomyślnym usunięciu zgłoszenia)
+    if (isset($_SESSION['success_message'])) {
+        echo "<p style='color: green; font-weight: bold; background-color: #e6f4ea; padding: 10px; border: 1px solid green; display: inline-block;'>" . $_SESSION['success_message'] . "</p>";
+        unset($_SESSION['success_message']);
+    }
+    if (isset($_SESSION['error_message'])) {
+        echo "<p style='color: red; font-weight: bold;'>" . $_SESSION['error_message'] . "</p>";
+        unset($_SESSION['error_message']);
+    }
+    ?>
+    
     <p><a href="dashboard.php">Powrót do panelu</a></p>
     
     <table border="1" cellpadding="8" cellspacing="0">
         <tr>
             <th>ID</th>
-            <th>Tytuł problemu</th>
+            <th>Temat problemu</th>
             <th>Kategoria</th>
             <th>Zgłaszający</th>
             <th>Przypisany pracownik</th>
@@ -94,8 +106,16 @@ $wynik = mysqli_query($conn, $zapytanie_zdloszenia);
                 
                 echo "<td>" . $wiersz['created_at'] . "</td>";
                 
-                // Link do szczegółów zgłoszenia do obsługi przez pracownika
-                echo "<td><a href='ticket_view.php?id=" . $wiersz['id'] . "'>Obsługa (Szczegóły)</a></td>";
+                // Kolumna z akcjami - szczegóły oraz trwałe usunięcie
+                echo "<td>";
+                echo "<a href='ticket_view.php?id=" . $wiersz['id'] . "'>Obsługa (Szczegóły)</a>";
+                
+                // Tylko admin i user mają prawo trwale usuwać
+                if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'user') {
+                    echo " | <a href='ticket_delete.php?id=" . $wiersz['id'] . "' onclick='return confirm(\"Czy na pewno chcesz trwale usunąć to zgłoszenie? Tej operacji NIE MOŻNA cofnąć!\")' style='color: red; font-weight: bold;'>Usuń</a>";
+                }
+                
+                echo "</td>";
                 echo "</tr>";
             }
             

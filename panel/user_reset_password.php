@@ -18,7 +18,9 @@ if (isset($_GET['id'])) {
     
     $hashed_password = password_hash($temporary_password, PASSWORD_BCRYPT);
     
-    $zapytanie = "UPDATE users SET password = ? WHERE id = ?";
+    $zapytanie = "UPDATE users SET password = ?, force_password_change = 1 WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $zapytanie);
+    mysqli_stmt_bind_param($stmt, "si", $hashed_password, $user_id);
     $stmt = mysqli_prepare($conn, $zapytanie);
     mysqli_stmt_bind_param($stmt, "si", $hashed_password, $user_id);
     

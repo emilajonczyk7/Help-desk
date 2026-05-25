@@ -1,35 +1,41 @@
 <?php
+// Pobranie konfiguracji
 require_once 'config.php';
 
-$error_msg = "";
+$error_msg = ""; 
 
-// Kiedy wciśnięto przycisk logowania
 if (isset($_POST['submit_login'])) {
     
-    // pobranie danych z formularza
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Przygotowanie zapytania chroniącego przed SQL Injection
-    $zapytanie = "SELECT id, username, password, role FROM users WHERE username = ? AND active = 1";
-    $stmt = $conn->prepare($zapytanie);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Przygotowanie zapytania chroniącego przed SQL Injection (pobieramy też force_password_change)
+    $zapytanie = "SELECT id, username, password, role, force_password_change FROM users WHERE username = ? AND active = 1";
+    $stmt = mysqli_prepare($conn, $zapytanie);
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
-    // czy znaleziono dokładnie jednego takiego użytkownika
-    if ($result->num_rows == 1) {
+    // Sprawdzenie, czy znaleziono dokładnie jednego takiego użytkownika
+    if (mysqli_num_rows($result) == 1) {
         
-        // Wyciągnięcie danych użytkownika z bazy
-        $user = $result->fetch_assoc();
+        $user = mysqli_fetch_assoc($result);
         
+        // Sprawdzenie poprawności zaszyfrowanego hasła
         if (password_verify($password, $user['password'])) {
             
+            // Hasło poprawne - zapisujemy dane do sesji
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role']; 
+            $_SESSION['force_password_change'] = $user['force_password_change'];
 
-            header("Location: panel/dashboard.php");
+            // Sprawdzamy, gdzie pokierować użytkownika
+            if ($_SESSION['force_password_change'] == 1) {
+                header("Location: panel/force_change.php");
+            } else {
+                header("Location: panel/dashboard.php");
+            }
             exit;
             
         } else {
@@ -37,7 +43,6 @@ if (isset($_POST['submit_login'])) {
         }
         
     } else {
-        // Nie ma takiego loginu w bazie lub konto ma active = 0
         $error_msg = "Nie znaleziono użytkownika lub konto jest zablokowane.";
     }
 }
