@@ -150,8 +150,7 @@ INSERT INTO `tickets` (`id`, `title`, `description`, `status`, `category_id`, `c
 (58, 'Myszka leworęczna', 'Czy mógłbym poprosić o zamianę standardowej myszki na symetryczną?', 'zakończone', 4, 3, 1, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
 (59, 'Konto do testów', 'Potrzebuję tymczasowego konta mailowego do testowania aplikacji.', 'w trakcie', 2, 4, 2, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
 (60, 'Błąd 404 w systemie wewnętrznym', 'Klikając w link do instrukcji dostaję błąd \"Not Found\".', 'nowe', 1, 3, NULL, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
-(61, 'Pęknięty plastik przy zawiasie', 'Zauważyłem pęknięcie w moim służbowym laptopie.', 'zakończone', 4, NULL, 4, '2026-05-25 23:21:13', '2026-05-25 23:23:37', NULL),
-(62, 'test', 'testt', 'nowe', 1, 6, NULL, '2026-05-25 23:31:08', '2026-05-25 23:31:08', 'uploads/1779744668_co_jeszcze1.jpg');
+(61, 'Pęknięty plastik przy zawiasie', 'Zauważyłem pęknięcie w moim służbowym laptopie.', 'zakończone', 4, NULL, 4, '2026-05-25 23:21:13', '2026-05-25 23:23:37', NULL);
 
 -- --------------------------------------------------------
 
