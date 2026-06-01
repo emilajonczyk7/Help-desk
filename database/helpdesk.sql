@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Cze 01, 2026 at 01:59 PM
+-- Generation Time: Cze 01, 2026 at 04:21 PM
 -- Wersja serwera: 10.4.32-MariaDB
 -- Wersja PHP: 8.2.12
 
@@ -150,7 +150,10 @@ INSERT INTO `tickets` (`id`, `title`, `description`, `status`, `category_id`, `c
 (58, 'Myszka leworęczna', 'Czy mógłbym poprosić o zamianę standardowej myszki na symetryczną?', 'zakończone', 4, 3, 1, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
 (59, 'Konto do testów', 'Potrzebuję tymczasowego konta mailowego do testowania aplikacji.', 'w trakcie', 2, 4, 2, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
 (60, 'Błąd 404 w systemie wewnętrznym', 'Klikając w link do instrukcji dostaję błąd \"Not Found\".', 'nowe', 1, 3, NULL, '2026-05-25 23:21:13', '2026-05-25 23:21:13', NULL),
-(61, 'Pęknięty plastik przy zawiasie', 'Zauważyłem pęknięcie w moim służbowym laptopie.', 'zakończone', 4, NULL, 4, '2026-05-25 23:21:13', '2026-05-25 23:23:37', NULL);
+(61, 'Pęknięty plastik przy zawiasie', 'Zauważyłem pęknięcie w moim służbowym laptopie.', 'zakończone', 4, NULL, 4, '2026-05-25 23:21:13', '2026-05-25 23:23:37', NULL),
+(62, 'test', 'testt', 'w trakcie', 1, 6, NULL, '2026-05-25 23:31:08', '2026-06-01 15:54:40', 'uploads/1779744668_co_jeszcze1.jpg'),
+(63, 'awaria', 'awaria', 'w trakcie', 3, NULL, 2, '2026-06-01 16:00:42', '2026-06-01 16:01:19', 'uploads/1780322442_Zrzut ekranu 2024-10-22 204652.png'),
+(64, 'Awaria drukarki', 'Drukarka przestała działać podczas drukowania.', 'nowe', 1, NULL, NULL, '2026-06-01 16:19:52', '2026-06-01 16:19:52', 'uploads/1780323592_drukarka.png');
 
 -- --------------------------------------------------------
 
@@ -177,9 +180,10 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `active`, `f
 (2, 'zuzia_j', '$2y$10$e23AKy.VHvEJOBv8LOUNf.ciOxsOjtdWb94ekGPSNfJsEPFpU3FUm', 'zuzia_j@wp.pl', 'user', 1, 0),
 (3, 'natka_flatka', '$2y$10$YzmmMBP2IWPNt25XPyJUOeECjtH8SJlFTPXaoS94f5e2Kste5aLOW', 'natalka12@wp.pl', 'guest', 1, 0),
 (4, 'marek_it', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'marek@helpdesk.pl', 'user', 1, 0),
-(5, 'gosia_serwis', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'gosia@helpdesk.pl', 'user', 1, 0),
+(5, 'gosia_serwis', '$2y$10$K9nqGmPMVkVdf1dnzszBzeUzVFR0GvEPTQlk/l.HuPjppgiVwbUMq', 'gosia@helpdesk.pl', 'user', 1, 0),
 (6, 'jan_kowalski', '$2y$10$ZwYWalUjDm3mjR4mRBNPU.Nz8gk4jxjhuhNo/yb8TjndkwDYRuUcy', 'jan.kowalski@wp.pl', 'guest', 1, 0),
-(7, 'anna_nowak', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'anna.nowak@o2.pl', 'guest', 1, 0);
+(7, 'anna_nowak', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'anna.nowak@o2.pl', 'guest', 1, 0),
+(8, 'jkowalskii', '$2y$10$QyVAKfKNIassdvnOcy0/ie6nCxvelKgL545xldhVSltcLmD5SN55e', 'jan@wp.pl', 'guest', 1, 1);
 
 --
 -- Indeksy dla zrzutów tabel
@@ -229,13 +233,13 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
