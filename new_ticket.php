@@ -40,7 +40,6 @@ if (isset($_POST['submit_ticket'])) {
             header("Location: new_ticket.php");
             exit;
         } else {
-            // Jeśli folder nie istnieje, spróbuj go stworzyć
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
@@ -91,11 +90,11 @@ if (isset($_POST['submit_ticket'])) {
 
     <nav class="navbar navbar-dark bg-dark mb-5 shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">🛠️ Help Desk</a>
+            <a class="navbar-brand fw-bold" href="new_ticket.php">🛠️ Help Desk</a>
             <div>
                 <?php if(isset($_SESSION['user_id'])): ?>
-                    <span class="text-white me-3">Zalogowany jako <b><?php echo htmlspecialchars($_SESSION['username']); ?></b></span>
-                    <a href="panel/dashboard.php" class="btn btn-outline-light btn-sm fw-bold">⬅ Wróć do Panelu</a>
+                    <span class="text-white me-3 d-none d-sm-inline">Zalogowany jako <b><?php echo htmlspecialchars($_SESSION['username']); ?></b></span>
+                    <a href="panel/dashboard.php" class="btn btn-outline-light btn-sm fw-bold">⬅ Panel</a>
                 <?php else: ?>
                     <a href="login.php" class="btn btn-outline-light btn-sm fw-bold">Zaloguj się</a>
                 <?php endif; ?>
@@ -107,7 +106,14 @@ if (isset($_POST['submit_ticket'])) {
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-7">
                 
-                <h3 class="fw-bold mb-4">Utwórz nowe zgłoszenie</h3>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Utwórz nowe zgłoszenie</h3>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <a href="panel/dashboard.php" class="btn btn-secondary btn-sm shadow-sm">⬅ Powrót do panelu</a>
+                    <?php else: ?>
+                        <a href="login.php" class="btn btn-secondary btn-sm shadow-sm">⬅ Powrót do logowania</a>
+                    <?php endif; ?>
+                </div>
 
                 <?php if (isset($_SESSION['success_message'])): ?>
                     <div class="alert alert-success fw-bold shadow-sm p-4 text-center">
