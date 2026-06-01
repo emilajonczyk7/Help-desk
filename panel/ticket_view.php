@@ -2,9 +2,16 @@
 session_start();
 require_once '../config.php';
 
-// tylko admin i pracownik
+// Zabezpieczenie: tylko admin i pracownik
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
-    echo "Brak dostępu! Tylko obsługa Help Desku może tu wejść.";
+    echo "Brak dostępu!";
+    exit;
+}
+
+// Zabezpieczenie przed brakiem ID
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    $_SESSION['error_message'] = "Nieprawidłowe ID zgłoszenia.";
+    header("Location: tickets_list.php");
     exit;
 }
 
@@ -24,8 +31,7 @@ if (isset($_POST['submit_update'])) {
     $stmt = mysqli_prepare($conn, $zapytanie_update);
     mysqli_stmt_bind_param($stmt, "sii", $new_status, $assigned_to, $ticket_id);
     if (mysqli_stmt_execute($stmt)) {
-        // Zapisujemy komunikat do sesji i przekierowujemy, by zapobiec ponownemu wysłaniu
-        $_SESSION['success_message'] = "Zaktualizowano zgłoszenie!";
+        $_SESSION['success_message'] = "Zaktualizowano status i przypisanie zgłoszenia!";
         header("Location: ticket_view.php?id=" . $ticket_id);
         exit;
     }
@@ -33,116 +39,192 @@ if (isset($_POST['submit_update'])) {
 
 // 2. Dodawanie komentarza
 if (isset($_POST['submit_comment'])) {
-    $content = $_POST['content'];
+    $content = trim($_POST['content']);
     if ($content != "") {
         $zapytanie_kom = "INSERT INTO comments (ticket_id, user_id, content) VALUES (?, ?, ?)";
         $stmt_kom = mysqli_prepare($conn, $zapytanie_kom);
         mysqli_stmt_bind_param($stmt_kom, "iis", $ticket_id, $current_user_id, $content);
         if (mysqli_stmt_execute($stmt_kom)) {
-            // PRG po udanym dodaniu komentarza
-            $_SESSION['success_message'] = "Dodano odpowiedź!";
+            $_SESSION['success_message'] = "Dodano odpowiedź do zgłoszenia!";
             header("Location: ticket_view.php?id=" . $ticket_id);
             exit;
         }
+    } else {
+        $_SESSION['error_message'] = "Komentarz nie może być pusty!";
+        header("Location: ticket_view.php?id=" . $ticket_id);
+        exit;
     }
 }
 
 // 3. Pobranie danych ticketa
-$zapytanie_ticket = "SELECT t.*, c.name AS nazwa_kategorii, u.username AS zglaszajacy FROM tickets t LEFT JOIN categories c ON t.category_id = c.id LEFT JOIN users u ON t.created_by = u.id WHERE t.id = ?";
+$zapytanie_ticket = "
+    SELECT t.*, c.name AS nazwa_kategorii, u.username AS zglaszajacy 
+    FROM tickets t 
+    LEFT JOIN categories c ON t.category_id = c.id 
+    LEFT JOIN users u ON t.created_by = u.id 
+    WHERE t.id = ?
+";
 $stmt_ticket = mysqli_prepare($conn, $zapytanie_ticket);
 mysqli_stmt_bind_param($stmt_ticket, "i", $ticket_id);
 mysqli_stmt_execute($stmt_ticket);
 $ticket = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_ticket));
 
-// 4. Lista pracowników
+// Jeśli ticket o takim ID nie istnieje, wyrzuć na listę
+if (!$ticket) {
+    $_SESSION['error_message'] = "Zgłoszenie nie istnieje.";
+    header("Location: tickets_list.php");
+    exit;
+}
+
+// 4. Lista pracowników do przypisania
 $wynik_pracownicy = mysqli_query($conn, "SELECT id, username FROM users WHERE role = 'user' OR role = 'admin'");
 
-// 5. Komentarze
-$zapytanie_komentarze = "SELECT cm.content, cm.created_at, u.username FROM comments cm LEFT JOIN users u ON cm.user_id = u.id WHERE cm.ticket_id = ? ORDER BY cm.id ASC";
+// 5. Pobieranie komentarzy
+$zapytanie_komentarze = "
+    SELECT cm.content, cm.created_at, u.username, u.role 
+    FROM comments cm 
+    LEFT JOIN users u ON cm.user_id = u.id 
+    WHERE cm.ticket_id = ? 
+    ORDER BY cm.id ASC
+";
 $stmt_comments = mysqli_prepare($conn, $zapytanie_komentarze);
 mysqli_stmt_bind_param($stmt_comments, "i", $ticket_id);
 mysqli_stmt_execute($stmt_comments);
 $wynik_komentarze = mysqli_stmt_get_result($stmt_comments);
+
+// Dołączamy nagłówek z Bootstrapem
+include 'header.php'; 
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Zgłoszenie <?php echo $ticket_id; ?></title>
-</head>
-<body>
-    <h2>Zgłoszenie nr <?php echo $ticket_id; ?></h2>
-    <a href="tickets_list.php">Wróć do listy</a><br><br>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🔍 Zgłoszenie #<?php echo $ticket_id; ?></h2>
+    <a href="tickets_list.php" class="btn btn-secondary btn-sm shadow-sm">⬅ Wróć do listy</a>
+</div>
 
-    <?php include 'flash_messages.php'; ?>
-
-    <table border="1" cellpadding="5">
-        <tr><td><b>Tytuł:</b></td><td><?php echo $ticket['title']; ?></td></tr>
-        <tr><td><b>Kategoria:</b></td><td><?php echo $ticket['nazwa_kategorii']; ?></td></tr>
-        <tr><td><b>Zgłaszający:</b></td><td><?php echo $ticket['zglaszajacy']; ?></td></tr>
-        <tr><td><b>Data:</b></td><td><?php echo $ticket['created_at']; ?></td></tr>
-        <tr><td><b>Opis:</b></td><td><?php echo $ticket['description']; ?></td></tr>
-    </table>
-
-    <br>
-    <div style="border: 1px solid black; padding: 10px; width: 400px; background-color: #eee;">
-        <b>Załączony plik:</b><br>
-        <?php 
-        if ($ticket['attachment'] != "") {
-            $sciezka = "../" . $ticket['attachment'];
-            $nazwa = basename($ticket['attachment']); // Zwykłe wyciągnięcie nazwy pliku z adresu
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h3 class="card-title fw-bold text-primary mb-1"><?php echo htmlspecialchars($ticket['title']); ?></h3>
+                <div class="text-muted small mb-3">
+                    📅 Dodano: <?php echo $ticket['created_at']; ?> | 
+                    📁 Kategoria: <?php echo $ticket['nazwa_kategorii'] ? htmlspecialchars($ticket['nazwa_kategorii']) : 'Brak'; ?> | 
+                    👤 Zgłaszający: <b><?php echo $ticket['zglaszajacy'] ? htmlspecialchars($ticket['zglaszajacy']) : 'Niezalogowany Gość'; ?></b>
+                </div>
+            </div>
+            <div class="card-body bg-light rounded m-3 p-4 border">
+                <p class="mb-0" style="white-space: pre-wrap;"><?php echo htmlspecialchars($ticket['description']); ?></p>
+            </div>
             
-            echo "<a href='$sciezka' target='_blank'>Pobierz plik ($nazwa)</a><br><br>";
-            
-            // Prosty if sprawdzający końcówkę pliku, bez skomplikowanych funkcji
-            $ext = strtolower(pathinfo($sciezka, PATHINFO_EXTENSION));
-            if ($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png') {
-                echo "<img src='$sciezka' width='300'>";
-            }
-        } else {
-            echo "Brak załącznika.";
-        }
-        ?>
+            <?php if ($ticket['attachment'] != ""): ?>
+                <div class="card-footer bg-white border-top-0 pb-4">
+                    <div class="alert alert-secondary mb-0">
+                        <h6 class="fw-bold mb-2">📎 Załączony plik:</h6>
+                        <?php 
+                        $sciezka = "../" . $ticket['attachment'];
+                        $nazwa = basename($ticket['attachment']);
+                        
+                        echo "<a href='$sciezka' target='_blank' class='btn btn-sm btn-outline-dark mb-2'>📥 Pobierz plik ($nazwa)</a><br>";
+                        
+                        $ext = strtolower(pathinfo($sciezka, PATHINFO_EXTENSION));
+                        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                            echo "<img src='$sciezka' class='img-fluid rounded shadow-sm' style='max-width: 100%; height: auto; max-height: 300px;' alt='Załącznik'>";
+                        }
+                        ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <h4 class="mb-3">💬 Konwersacja</h4>
+        
+        <?php if (mysqli_num_rows($wynik_komentarze) > 0): ?>
+            <div class="mb-4">
+                <?php while ($kom = mysqli_fetch_assoc($wynik_komentarze)): 
+                    // Rozróżnienie koloru w zależności od tego, kto pisze
+                    $bg_color = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'bg-white border' : 'bg-primary text-white shadow-sm';
+                    $text_color = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'text-dark' : 'text-white';
+                    $align = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'text-start' : 'text-end';
+                ?>
+                    <div class="card mb-3 <?php echo $bg_color; ?>" style="max-width: 85%; <?php echo ($align == 'text-end') ? 'margin-left: auto;' : ''; ?>">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between mb-1 <?php echo $text_color; ?>">
+                                <strong><?php echo $kom['username'] ? htmlspecialchars($kom['username']) : 'Gość'; ?></strong>
+                                <small style="opacity: 0.8;"><?php echo $kom['created_at']; ?></small>
+                            </div>
+                            <div class="mb-0 <?php echo $text_color; ?>" style="white-space: pre-wrap;"><?php echo htmlspecialchars($kom['content']); ?></div>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-light border mb-4 text-center text-muted">
+                Brak odpowiedzi. Rozpocznij konwersację.
+            </div>
+        <?php endif; ?>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Napisz odpowiedź:</label>
+                        <textarea name="content" class="form-control" rows="4" required placeholder="Wpisz treść wiadomości..."></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" name="submit_comment" class="btn btn-primary fw-bold px-4">
+                            ✉️ Wyślij odpowiedź
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
-    <br><hr>
 
-    <h3>Zarządzaj zgłoszeniem</h3>
-    <form method="POST">
-        Status: 
-        <select name="status">
-            <option value="nowe" <?php if($ticket['status'] == 'nowe') echo 'selected'; ?>>Nowe</option>
-            <option value="w trakcie" <?php if($ticket['status'] == 'w trakcie') echo 'selected'; ?>>W trakcie</option>
-            <option value="zakończone" <?php if($ticket['status'] == 'zakończone') echo 'selected'; ?>>Zakończone</option>
-        </select>
-        <br><br>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">⚙️ Zarządzaj zgłoszeniem</h5>
+            </div>
+            <div class="card-body bg-light">
+                <form method="POST">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status:</label>
+                        <select name="status" class="form-select fw-bold <?php 
+                            if($ticket['status'] == 'nowe') echo 'text-danger';
+                            elseif($ticket['status'] == 'w trakcie') echo 'text-warning';
+                            else echo 'text-success';
+                        ?>">
+                            <option value="nowe" <?php if($ticket['status'] == 'nowe') echo 'selected'; ?>>🔴 Nowe</option>
+                            <option value="w trakcie" <?php if($ticket['status'] == 'w trakcie') echo 'selected'; ?>>🟡 W trakcie</option>
+                            <option value="zakończone" <?php if($ticket['status'] == 'zakończone') echo 'selected'; ?>>🟢 Zakończone</option>
+                        </select>
+                    </div>
 
-        Przypisany pracownik:
-        <select name="assigned_to">
-            <option value="">Brak</option>
-            <?php while ($p = mysqli_fetch_assoc($wynik_pracownicy)): ?>
-                <option value="<?php echo $p['id']; ?>" <?php if($ticket['assigned_to'] == $p['id']) echo 'selected'; ?>>
-                    <?php echo $p['username']; ?>
-                </option>
-            <?php endwhile; ?>
-        </select>
-        <br><br>
-        <input type="submit" name="submit_update" value="Zapisz zmiany">
-    </form>
-    <hr>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Przypisany pracownik:</label>
+                        <select name="assigned_to" class="form-select">
+                            <option value="">-- Brak (Nieprzypisane) --</option>
+                            <?php while ($p = mysqli_fetch_assoc($wynik_pracownicy)): ?>
+                                <option value="<?php echo $p['id']; ?>" <?php if($ticket['assigned_to'] == $p['id']) echo 'selected'; ?>>
+                                    <?php echo htmlspecialchars($p['username']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" name="submit_update" class="btn btn-dark fw-bold">
+                            💾 Zapisz zmiany
+                        </button>
+                    </div>
 
-    <h3>Komentarze</h3>
-    <?php while ($kom = mysqli_fetch_assoc($wynik_komentarze)): ?>
-        <p><b><?php echo $kom['username']; ?></b> (<?php echo $kom['created_at']; ?>):<br>
-        <?php echo $kom['content']; ?></p>
-        <hr>
-    <?php endwhile; ?>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <form method="POST">
-        Napisz odpowiedź:<br>
-        <textarea name="content" rows="4" cols="50" required></textarea><br>
-        <input type="submit" name="submit_comment" value="Wyślij">
-    </form>
-
-</body>
-</html>
+<?php include 'footer.php'; ?>

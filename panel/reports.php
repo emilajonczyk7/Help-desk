@@ -1,115 +1,151 @@
 <?php
 session_start();
-
 require_once '../config.php';
 
-// tylko administrator ma dostęp do raportów
+// Zabezpieczenie: Tylko administrator ma dostęp do raportów
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
+    echo "Brak dostępu! Tylko administrator może przeglądać raporty.";
     exit;
 }
 
-// ogólne statystyki zgłoszeń
+// --- POBIERANIE DANYCH STATYSTYCZNYCH Z BAZY ---
 
-// ile zgłoszeń w bazie
-$wynik_all = mysqli_query($conn, "SELECT COUNT(*) AS ile FROM tickets");
-$row_all = mysqli_fetch_assoc($wynik_all);
-$ogolem = $row_all['ile'];
+// 1. Łączna liczba użytkowników
+$wynik_users = mysqli_query($conn, "SELECT COUNT(id) AS total FROM users");
+$total_users = mysqli_fetch_assoc($wynik_users)['total'];
 
-// ile nowych zgłoszeń
-$wynik_nowe = mysqli_query($conn, "SELECT COUNT(*) AS ile FROM tickets WHERE status = 'nowe'");
-$row_nowe = mysqli_fetch_assoc($wynik_nowe);
-$nowe = $row_nowe['ile'];
+// 2. Łączna liczba wszystkich zgłoszeń
+$wynik_tickets = mysqli_query($conn, "SELECT COUNT(id) AS total FROM tickets");
+$total_tickets = mysqli_fetch_assoc($wynik_tickets)['total'];
 
-// ile zgłoszeń w trakcie realizacji
-$wynik_w_trakcie = mysqli_query($conn, "SELECT COUNT(*) AS ile FROM tickets WHERE status = 'w trakcie'");
-$row_w_trakcie = mysqli_fetch_assoc($wynik_w_trakcie);
-$w_trakcie = $row_w_trakcie['ile'];
+// 3. Rozbicie zgłoszeń na statusy (nowe, w trakcie, zakończone)
+$status_counts = ['nowe' => 0, 'w trakcie' => 0, 'zakończone' => 0];
+$wynik_statusy = mysqli_query($conn, "SELECT status, COUNT(id) AS cnt FROM tickets GROUP BY status");
+while ($wiersz = mysqli_fetch_assoc($wynik_statusy)) {
+    $status_counts[$wiersz['status']] = $wiersz['cnt'];
+}
 
-// ile zgłoszeń zakończonych
-$wynik_zakonczone = mysqli_query($conn, "SELECT COUNT(*) AS ile FROM tickets WHERE status = 'zakończone'");
-$row_zakonczone = mysqli_fetch_assoc($wynik_zakonczone);
-$zakonczone = $row_zakonczone['ile'];
-
-
-// statystyki użytkowników
-// Ilu użytkowników zarejestrowanych w sys
-$wynik_users = mysqli_query($conn, "SELECT COUNT(*) AS ile FROM users");
-$row_users = mysqli_fetch_assoc($wynik_users);
-$ilu_uzytkownikow = $row_users['ile'];
-
-
-// zgłoszenia wg kategorii
+// 4. Liczba zgłoszeń w poszczególnych kategoriach
 $zapytanie_kategorie = "
-    SELECT c.name AS nazwa_kategorii, COUNT(t.id) AS ilosc_zgloszen
-    FROM categories c
-    LEFT JOIN tickets t ON c.id = t.category_id
-    GROUP BY c.id
-    ORDER BY ilosc_zgloszen DESC
+    SELECT c.name AS nazwa_kategorii, COUNT(t.id) AS liczba_zgloszen 
+    FROM categories c 
+    LEFT JOIN tickets t ON c.id = t.category_id 
+    GROUP BY c.id 
+    ORDER BY liczba_zgloszen DESC
 ";
-$wynik_kategorie = mysqli_query($conn, $zapytanie_kategorie);
+$wynik_kat = mysqli_query($conn, $zapytanie_kategorie);
+
+include 'header.php'; 
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Raporty i Statystyki - Admin Panel</title>
-</head>
-<body>
-    <h2>Raporty i statystyki systemu Help Desk</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">📊 Raporty i statystyki</h2>
+    <a href="dashboard.php" class="btn btn-secondary btn-sm shadow-sm">⬅ Powrót do panelu</a>
+</div>
+
+<div class="row mb-4">
     
-    <p><a href="dashboard.php">⬅ Powrót do panelu</a></p>
-    
-    <hr>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white shadow border-0 h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">👥 Użytkownicy</h5>
+                <h1 class="display-4 fw-bold mb-0"><?php echo $total_users; ?></h1>
+            </div>
+        </div>
+    </div>
 
-    <h3>Podsumowanie liczbowe</h3>
-    <table border="1" cellpadding="8" cellspacing="0" style="width: 400px;">
-        <tr>
-            <td><b>Wszystkie zgłoszenia:</b></td>
-            <td>Głównie: <b><?php echo $ogolem; ?></b></td>
-        </tr>
-        <tr>
-            <td><span style="color: red; font-weight: bold;">Status: NOWE</span></td>
-            <td><?php echo $nowe; ?></td>
-        </tr>
-        <tr>
-            <td><span style="color: orange; font-weight: bold;">Status: W TRAKCIE</span></td>
-            <td><?php echo $w_w_trakcie = $w_trakcie; ?></td>
-        </tr>
-        <tr>
-            <td><span style="color: green; font-weight: bold;">Status: ZAKOŃCZONE</span></td>
-            <td><?php echo $zakonczone; ?></td>
-        </tr>
-        <tr>
-            <td><b>Zarejestrowani użytkownicy:</b></td>
-            <td><?php echo $ilu_uzytkownikow; ?></td>
-        </tr>
-    </table>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-dark text-white shadow border-0 h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">📋 Wszystkie Tickety</h5>
+                <h1 class="display-4 fw-bold mb-0"><?php echo $total_tickets; ?></h1>
+            </div>
+        </div>
+    </div>
 
-    <br><br>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white shadow border-0 h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">🔴 Nowe zgłoszenia</h5>
+                <h1 class="display-4 fw-bold mb-0"><?php echo $status_counts['nowe']; ?></h1>
+            </div>
+        </div>
+    </div>
 
-    <h3>Ilość zgłoszeń w podziale na kategorie</h3>
-    <table border="1" cellpadding="8" cellspacing="0" style="width: 400px;">
-        <tr>
-            <th>Nazwa kategorii</th>
-            <th>Liczba zgłoszeń</th>
-        </tr>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white shadow border-0 h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">✅ Zakończone</h5>
+                <h1 class="display-4 fw-bold mb-0"><?php echo $status_counts['zakończone']; ?></h1>
+            </div>
+        </div>
+    </div>
 
-        <?php 
-        // Pętla wypisująca statystyki dla każdej kategorii
-        if (mysqli_num_rows($wynik_kategorie) > 0) {
-            while ($row_kat = mysqli_fetch_assoc($wynik_kategorie)) {
-                echo "<tr>";
-                echo "<td>" . $row_kat['nazwa_kategorii'] . "</td>";
-                echo "<td><b>" . $row_kat['ilosc_zgloszen'] . "</b></td>";
-                echo "</tr>";
-            }
-        } else {
-            echo "<tr><td colspan='2'>Brak kategorii w bazie danych.</td></tr>";
-        }
-        ?>
-    </table>
+</div>
 
-</body>
-</html>
+<div class="row">
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold">
+                📈 Podział według statusu
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="ps-4"><b>Nowe</b></td>
+                            <td class="text-end pe-4"><span class="badge bg-danger fs-6"><?php echo $status_counts['nowe']; ?></span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><b>W trakcie</b></td>
+                            <td class="text-end pe-4"><span class="badge bg-warning text-dark fs-6"><?php echo $status_counts['w trakcie']; ?></span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><b>Zakończone</b></td>
+                            <td class="text-end pe-4"><span class="badge bg-success fs-6"><?php echo $status_counts['zakończone']; ?></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prawa kolumna: Zgłoszenia wg kategorii -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold">
+                📁 Obciążenie według kategorii
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Kategoria</th>
+                            <th class="text-end pe-4">Liczba zgłoszeń</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        if (mysqli_num_rows($wynik_kat) > 0) {
+                            while ($kat = mysqli_fetch_assoc($wynik_kat)) {
+                                echo "<tr>";
+                                echo "<td class='ps-4'>" . htmlspecialchars($kat['nazwa_kategorii']) . "</td>";
+                                echo "<td class='text-end pe-4 fw-bold'>" . $kat['liczba_zgloszen'] . "</td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='2' class='text-center text-muted py-3'>Brak danych o kategoriach.</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<?php 
+include 'footer.php'; 
+?>

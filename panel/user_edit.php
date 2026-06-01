@@ -1,103 +1,138 @@
 <?php
 session_start();
-
 require_once '../config.php';
 
-// Sprawdzenie czy użytkownik to admin
+// Zabezpieczenie: Tylko administrator ma dostęp do tej strony
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
+    echo "Brak dostępu! Tylko administrator może edytować użytkowników.";
     exit;
 }
 
-$message = "";
+// Sprawdzenie, czy podano ID użytkownika
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    $_SESSION['error_message'] = "Nieprawidłowe ID użytkownika.";
+    header("Location: users_list.php");
+    exit;
+}
 
-// Pobranie ID użytkownika z paska adresu
-$user_id = $_GET['id'];
+$edit_user_id = $_GET['id'];
 
-// wysłanie formularza
-if (isset($_POST['submit_edit'])) {
+// Obsługa zapisu formularza
+if (isset($_POST['submit_edit_user'])) {
     
-    // przypisanie zmiennych z formularza
-    $username = $_POST['username'];
-    $email = $_POST['email'];
+    $email = trim($_POST['email']);
     $role = $_POST['role'];
-    $password = $_POST['password'];
+    $active = (int)$_POST['active'];
 
-    // czy checkbox jest zaznaczony
-    if (isset($_POST['active'])) {
-        $active = 1;
+    // Walidacja
+    if (empty($email) || empty($role)) {
+        $_SESSION['error_message'] = "Błąd: E-mail i Rola to pola wymagane!";
+    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error_message'] = "Błąd: Podano niepoprawny format adresu e-mail!";
     } else {
-        $active = 0;
-    }
-
-    // Zapisywanie zmian w bazie
-    if ($password != "") {
-        // Jeśli wpisano nowe hasło, musimy je zaszyfrować 
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
         
-        $zapytanie = "UPDATE users SET username = ?, email = ?, role = ?, active = ?, password = ? WHERE id = ?";
-        $stmt = $conn->prepare($zapytanie);
-        $stmt->bind_param("sssssi", $username, $email, $role, $active, $hashed_password, $user_id);
-    } else {
-        // Jeśli hasło zostawiono puste, robimy update bez zmiany hasła
-        $zapytanie = "UPDATE users SET username = ?, email = ?, role = ?, active = ? WHERE id = ?";
-        $stmt = $conn->prepare($zapytanie);
-        $stmt->bind_param("ssssi", $username, $email, $role, $active, $user_id);
-    }
-
-    // Wykonanie zapytania i komunikat
-    if ($stmt->execute()) {
-        $message = "Udało się zapisać zmiany!";
-    } else {
-        $message = "Wystąpił błąd podczas zapisu.";
+        // Sprawdzenie, czy nowy e-mail nie jest już zajęty przez INNEGO użytkownika
+        $zapytanie_sprawdz = "SELECT id FROM users WHERE email = ? AND id != ?";
+        $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
+        mysqli_stmt_bind_param($stmt_sprawdz, "si", $email, $edit_user_id);
+        mysqli_stmt_execute($stmt_sprawdz);
+        mysqli_stmt_store_result($stmt_sprawdz);
+        
+        if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
+            $_SESSION['error_message'] = "Błąd: Ten adres e-mail jest już przypisany do innego konta!";
+        } else {
+            // Aktualizacja danych
+            $zapytanie_update = "UPDATE users SET email = ?, role = ?, active = ? WHERE id = ?";
+            $stmt = mysqli_prepare($conn, $zapytanie_update);
+            mysqli_stmt_bind_param($stmt, "ssii", $email, $role, $active, $edit_user_id);
+            
+            if (mysqli_stmt_execute($stmt)) {
+                // Sukces -> przekierowanie z komunikatem (wzorzec PRG)
+                $_SESSION['success_message'] = "Pomyślnie zaktualizowano dane użytkownika!";
+                header("Location: users_list.php");
+                exit;
+            } else {
+                $_SESSION['error_message'] = "Wystąpił błąd bazy danych podczas edycji.";
+            }
+        }
+        mysqli_stmt_close($stmt_sprawdz);
     }
 }
 
-// pobranie danych do formularza
+// Pobranie aktualnych danych użytkownika do wypełnienia formularza
 $zapytanie_dane = "SELECT username, email, role, active FROM users WHERE id = ?";
-$stmt2 = $conn->prepare($zapytanie_dane);
-$stmt2->bind_param("i", $user_id);
-$stmt2->execute();
-$result = $stmt2->get_result();
+$stmt_dane = mysqli_prepare($conn, $zapytanie_dane);
+mysqli_stmt_bind_param($stmt_dane, "i", $edit_user_id);
+mysqli_stmt_execute($stmt_dane);
+$wynik_dane = mysqli_stmt_get_result($stmt_dane);
+$user_data = mysqli_fetch_assoc($wynik_dane);
 
-$user = $result->fetch_assoc();
+if (!$user_data) {
+    $_SESSION['error_message'] = "Użytkownik o podanym ID nie istnieje.";
+    header("Location: users_list.php");
+    exit;
+}
+
+include 'header.php'; 
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Edycja Użytkownika</title>
-</head>
-<body>
-    <h2>Edycja użytkownika o ID: <?php echo $user_id; ?></h2>
-    
-    <p><b><?php echo $message; ?></b></p>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Edycja użytkownika</h3>
+            <a href="users_list.php" class="btn btn-secondary btn-sm">⬅ Powrót</a>
+        </div>
 
-    <form method="POST">
-        Login: <br>
-        <input type="text" name="username" value="<?php echo $user['username']; ?>" required><br><br>
-        
-        Adres e-mail: <br>
-        <input type="email" name="email" value="<?php echo $user['email']; ?>" required><br><br>
-        
-        Nowe hasło: <br>
-        <input type="password" name="password"> (zostaw puste, jeśli nie zmieniasz)<br><br>
-        
-        Rola w systemie: <br>
-        <select name="role">
-            <option value="guest">Klient (Guest)</option>
-            <option value="user">Pracownik (User)</option>
-            <option value="admin">Administrator (Admin)</option>
-        </select><br><br>
-        
-        <input type="checkbox" name="active" value="1" <?php if($user['active'] == 1) { echo "checked"; } ?>> Konto aktywne <br><br>
-        
-        <input type="submit" name="submit_edit" value="Zapisz zmiany">
-    </form>
-    
-    <br>
-    <a href="users_list.php">Powrót do listy</a>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Modyfikuj dane konta</h5>
+            </div>
+            <div class="card-body p-4">
+                
+                <form method="POST">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Login (Zablokowany do edycji):</label>
+                        <input type="text" class="form-control bg-light" value="<?php echo htmlspecialchars($user_data['username']); ?>" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Adres e-mail:</label>
+                        <input type="email" name="email" class="form-control" required maxlength="100" value="<?php echo htmlspecialchars($user_data['email']); ?>">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rola w systemie:</label>
+                        <select name="role" class="form-select" required>
+                            <option value="guest" <?php if($user_data['role'] == 'guest') echo 'selected'; ?>>Klient (Guest)</option>
+                            <option value="user" <?php if($user_data['role'] == 'user') echo 'selected'; ?>>Pracownik (User)</option>
+                            <option value="admin" <?php if($user_data['role'] == 'admin') echo 'selected'; ?>>Administrator</option>
+                        </select>
+                    </div>
 
-</body>
-</html>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Status konta:</label>
+                        <select name="active" class="form-select" required>
+                            <option value="1" <?php if($user_data['active'] == 1) echo 'selected'; ?>>Aktywne (Zezwól na logowanie)</option>
+                            <option value="0" <?php if($user_data['active'] == 0) echo 'selected'; ?>>Zablokowane (Odmowa dostępu)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" name="submit_edit_user" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                            💾 Zapisz zmiany
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<?php 
+include 'footer.php'; 
+?>

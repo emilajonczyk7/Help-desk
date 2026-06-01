@@ -2,34 +2,32 @@
 session_start();
 require_once '../config.php';
 
-//tylko administrator ma dostęp
+// Zabezpieczenie: Tylko administrator ma dostęp do tej strony
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 
-$message = "";
-$error_message = "";
-
 if (isset($_POST['submit_add_user'])) {
     
-    //Oczyszczanie danych
+    // 1. Oczyszczanie danych
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $role = $_POST['role'];
 
-    // właściwa walidacja 
+    // 2. WŁAŚCIWA WALIDACJA PHP (Błędy wrzucamy do sesji, żeby wyświetlił je nasz Flash Message)
     if (empty($username) || empty($email) || empty($password) || empty($role)) {
-        $error_message = "Błąd: Wypełnij wszystkie wymagane pola!";
+        $_SESSION['error_message'] = "Błąd: Wypełnij wszystkie wymagane pola!";
     } else if (strlen($username) < 4) {
-        $error_message = "Błąd: Login musi mieć co najmniej 4 znaki.";
+        $_SESSION['error_message'] = "Błąd: Login musi mieć co najmniej 4 znaki.";
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error_message = "Błąd: Podano niepoprawny format adresu e-mail!";
+        $_SESSION['error_message'] = "Błąd: Podano niepoprawny format adresu e-mail!";
     } else if (strlen($password) < 5) {
-        $error_message = "Błąd: Hasło musi składać się z minimum 5 znaków.";
+        $_SESSION['error_message'] = "Błąd: Hasło musi składać się z minimum 5 znaków.";
     } else {
         
+        // 3. Sprawdzenie, czy użytkownik o takim loginie lub mailu już istnieje
         $zapytanie_sprawdz = "SELECT id FROM users WHERE username = ? OR email = ?";
         $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
         mysqli_stmt_bind_param($stmt_sprawdz, "ss", $username, $email);
@@ -37,62 +35,88 @@ if (isset($_POST['submit_add_user'])) {
         mysqli_stmt_store_result($stmt_sprawdz);
         
         if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
-            $error_message = "Błąd: Użytkownik o takim loginie lub e-mailu już istnieje w bazie!";
+            $_SESSION['error_message'] = "Błąd: Użytkownik o takim loginie lub e-mailu już istnieje w bazie!";
         } else {
+            // 4. Jeśli wszystko OK, szyfrujemy hasło i zapisujemy
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $active = 1;
+            $active = 1; // Nowe konto jest od razu aktywne
             
             $zapytanie = "INSERT INTO users (username, password, email, role, active) VALUES (?, ?, ?, ?, ?)";
             $stmt = mysqli_prepare($conn, $zapytanie);
             mysqli_stmt_bind_param($stmt, "ssssi", $username, $hashed_password, $email, $role, $active);
             
             if (mysqli_stmt_execute($stmt)) {
-                // Zapisujemy komunikat w sesji
-                $_SESSION['success_message'] = "Sukces! Dodano nowego użytkownika: " . $username;
-                
+                // Sukces -> przekierowanie z komunikatem (wzorzec PRG)
+                $_SESSION['success_message'] = "Pomyślnie dodano nowego użytkownika: " . $username;
                 header("Location: users_list.php");
                 exit;
             } else {
-                $error_message = "Wystąpił błąd bazy danych podczas dodawania.";
+                $_SESSION['error_message'] = "Wystąpił błąd bazy danych podczas dodawania.";
             }
         }
         mysqli_stmt_close($stmt_sprawdz);
     }
 }
+
+include 'header.php'; 
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Dodaj użytkownika</title>
-</head>
-<body>
-    <h2>Dodaj nowego użytkownika (Panel Administratora)</h2>
-    <p><a href="users_list.php">⬅ Powrót do listy użytkowników</a></p>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Dodaj użytkownika</h3>
+            <a href="users_list.php" class="btn btn-secondary btn-sm">⬅ Powrót</a>
+        </div>
 
-    <p style="color: green;"><b><?php echo $message; ?></b></p>
-    <p style="color: red;"><b><?php echo $error_message; ?></b></p>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Wprowadź dane nowego konta</h5>
+            </div>
+            <div class="card-body p-4">
+                
+                <form method="POST">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Login:</label>
+                        <input type="text" name="username" class="form-control" required minlength="4" maxlength="50" placeholder="np. jkowalski">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Adres e-mail:</label>
+                        <input type="email" name="email" class="form-control" required maxlength="100" placeholder="np. jan@example.com">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hasło początkowe:</label>
+                        <input type="password" name="password" class="form-control" required minlength="5" placeholder="Minimum 5 znaków">
+                        <div class="form-text">Przy pierwszym logowaniu użytkownik zostanie poproszony o jego zmianę.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Rola w systemie:</label>
+                        <select name="role" class="form-select" required>
+                            <option value="">-- Wybierz rolę --</option>
+                            <option value="guest">Klient (Guest)</option>
+                            <option value="user">Pracownik (User)</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" name="submit_add_user" class="btn btn-success btn-lg fw-bold">
+                            ➕ Dodaj użytkownika
+                        </button>
+                    </div>
 
-    <form method="POST">
-        Login:<br>
-        <input type="text" name="username" required minlength="4" maxlength="50"><br><br>
-        
-        Adres e-mail:<br>
-        <input type="email" name="email" required maxlength="100"><br><br>
-        
-        Hasło początkowe:<br>
-        <input type="password" name="password" required minlength="5"><br><br>
-        
-        Rola w systemie:<br>
-        <select name="role" required>
-            <option value="">-- Wybierz rolę --</option>
-            <option value="guest">Klient (Guest)</option>
-            <option value="user">Pracownik (User)</option>
-            <option value="admin">Administrator</option>
-        </select><br><br>
-        
-        <input type="submit" name="submit_add_user" value="Dodaj użytkownika">
-    </form>
-</body>
-</html>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<?php 
+include 'footer.php'; 
+?>

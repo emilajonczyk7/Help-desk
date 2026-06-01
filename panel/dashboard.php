@@ -1,52 +1,49 @@
 <?php
 session_start();
 
+// Sprawdzenie czy użytkownik jest zalogowany
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php"); 
+    header("Location: ../login.php");
     exit;
 }
 
-// Pobranie danych zalogowanego użytkownika z sesji
-$username = $_SESSION['username'];
 $role = $_SESSION['role'];
+
+include 'header.php'; 
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Panel - Help Desk</title>
-</head>
-<body>
-    <h2>Witaj w panelu, <?php echo $username; ?>!</h2>
-    
-    <?php include 'flash_messages.php'; ?>
-    
-    <p>Twoja rola w systemie to: <strong><?php echo $role; ?></strong></p>
-    
-    <hr>
-    
-    <h3>Menu:</h3>
-    <ul>
-        <?php 
 
-        // Linki widoczne tylko dla administratora
-        if ($role == 'admin') {
-            echo '<li><a href="users_list.php">Zarządzanie użytkownikami</a></li>';
-            echo '<li><a href="categories.php">Kategorie zgłoszeń</a></li>';
-            echo '<li><a href="reports.php">Raporty i statystyki systemu</a></li>';
-        }
+<div class="row justify-content-center">
+    <div class="col-md-8">
         
-        // Linki widoczne dla pracownika (user) oraz administratora (admin)
-        if ($role == 'admin' || $role == 'user') {
-            echo '<li><a href="tickets_list.php">Lista wszystkich zgłoszeń</a></li>';
-        }
-        
-        // Ten link ma być widoczny dla każdego zalogowanego (admin, user, guest)
-        echo '<li><a href="../new_ticket.php">Nowe zgłoszenie</a></li>';
-        ?>
-    </ul>
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Wybierz akcję z menu</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <?php 
+                    // Linki widoczne tylko dla administratora
+                    if ($role == 'admin') {
+                        echo '<a href="users_list.php" class="btn btn-outline-primary text-start p-3 fw-bold">👥 Zarządzanie użytkownikami</a>';
+                        echo '<a href="categories.php" class="btn btn-outline-primary text-start p-3 fw-bold">📁 Kategorie zgłoszeń</a>';
+                        echo '<a href="reports.php" class="btn btn-outline-primary text-start p-3 fw-bold">📊 Raporty i statystyki systemu</a>';
+                    }
+                    
+                    // Linki widoczne dla pracownika i administratora
+                    if ($role == 'admin' || $role == 'user') {
+                        echo '<a href="tickets_list.php" class="btn btn-outline-success text-start p-3 fw-bold">📋 Lista wszystkich zgłoszeń</a>';
+                    }
+                    
+                    // Link widoczny dla każdego
+                    echo '<a href="../new_ticket.php" class="btn btn-primary text-start p-3 fw-bold shadow-sm">➕ Nowe zgłoszenie (Stwórz Ticketa)</a>';
+                    ?>
+                </div>
+            </div>
+        </div>
 
-    <br>
-    <a href="../logout.php">Wyloguj się</a>
-</body>
-</html>
+    </div>
+</div>
+
+<?php 
+include 'footer.php'; 
+?>
