@@ -31,8 +31,11 @@ include 'header.php';
                     
                     // Linki widoczne dla pracownika i administratora
                     if ($role == 'admin' || $role == 'user') {
-                        echo '<a href="tickets_list.php" class="btn btn-outline-success text-start p-3 fw-bold">📋 Lista wszystkich zgłoszeń</a>';
+                        echo '<a href="tickets_list.php" class="btn btn-outline-success text-start p-3 fw-bold">📋 Lista WSZYSTKICH zgłoszeń (Serwis)</a>';
                     }
+                    
+                    // Linki widoczne dla każdego
+                    echo '<a href="my_tickets.php" class="btn btn-outline-info text-start p-3 fw-bold text-dark">🙋‍♂️ Moje własne zgłoszenia</a>';
                     
                     // Link widoczny dla każdego
                     echo '<a href="../new_ticket.php" class="btn btn-primary text-start p-3 fw-bold shadow-sm">➕ Nowe zgłoszenie (Stwórz Ticketa)</a>';
