@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Cze 01, 2026 at 04:21 PM
+-- Generation Time: Cze 01, 2026 at 05:14 PM
 -- Wersja serwera: 10.4.32-MariaDB
 -- Wersja PHP: 8.2.12
 
@@ -180,8 +180,8 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `active`, `f
 (2, 'zuzia_j', '$2y$10$e23AKy.VHvEJOBv8LOUNf.ciOxsOjtdWb94ekGPSNfJsEPFpU3FUm', 'zuzia_j@wp.pl', 'user', 1, 0),
 (3, 'natka_flatka', '$2y$10$YzmmMBP2IWPNt25XPyJUOeECjtH8SJlFTPXaoS94f5e2Kste5aLOW', 'natalka12@wp.pl', 'guest', 1, 0),
 (4, 'marek_it', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'marek@helpdesk.pl', 'user', 1, 0),
-(5, 'gosia_serwis', '$2y$10$K9nqGmPMVkVdf1dnzszBzeUzVFR0GvEPTQlk/l.HuPjppgiVwbUMq', 'gosia@helpdesk.pl', 'user', 1, 0),
-(6, 'jan_kowalski', '$2y$10$ZwYWalUjDm3mjR4mRBNPU.Nz8gk4jxjhuhNo/yb8TjndkwDYRuUcy', 'jan.kowalski@wp.pl', 'guest', 1, 0),
+(5, 'gosia_serwis', '$2y$10$OdjPCUHdTPeLtTUaT0q6PelIHAWMWuFDZHNyOyXj5PeP.BQvuPPnG', 'gosia@helpdesk.pl', 'user', 1, 0),
+(6, 'jan_kowalski', '$2y$10$Ys2Cp8Ew7HSQj6.26z7PPuVHxYa2zgFnTfh6N3mJ4I/PrW7euugvq', 'jan.kowalski@wp.pl', 'guest', 1, 0),
 (7, 'anna_nowak', '$2y$10$mC7p6R9iHlA7XwG5T9k3OedR0W6sJ8YvM2fN1zKq9pB3cY6uD7b2.', 'anna.nowak@o2.pl', 'guest', 1, 0),
 (8, 'jkowalskii', '$2y$10$QyVAKfKNIassdvnOcy0/ie6nCxvelKgL545xldhVSltcLmD5SN55e', 'jan@wp.pl', 'guest', 1, 1);
 
