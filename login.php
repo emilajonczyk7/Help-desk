@@ -99,8 +99,9 @@ if (isset($_POST['submit_login'])) {
                     </div>
                 </div>
                 
-                <div class="text-center mt-4">
-                    <a href="new_ticket.php" class="text-decoration-none fw-bold">➕ Utwórz zgłoszenie bez logowania (Gość)</a>
+                <div class="d-flex flex-column align-items-center gap-2 mt-4">
+                    <a href="new_ticket.php" class="text-decoration-none fw-bold">➕ Utwórz zgłoszenie (Gość)</a>
+                    <a href="track_ticket.php" class="text-decoration-none fw-bold text-success">🔍 Sprawdź status zgłoszenia</a>
                 </div>
 
             </div>

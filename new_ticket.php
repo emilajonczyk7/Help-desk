@@ -65,7 +65,9 @@ if (isset($_POST['submit_ticket'])) {
         mysqli_stmt_bind_param($stmt, "ssiiss", $title, $description, $category_id, $created_by, $status, $attachment);
         
         if (mysqli_stmt_execute($stmt)) {
-            $_SESSION['success_message'] = "Twoje zgłoszenie zostało wysłane i oczekuje na obsługę!";
+            $new_ticket_id = mysqli_insert_id($conn); 
+            
+            $_SESSION['success_message'] = "Twoje zgłoszenie zostało wysłane! Numer Twojego zgłoszenia to: <span class='badge bg-dark fs-5'>#" . $new_ticket_id . "</span>.<br>Zapamiętaj ten numer, aby móc sprawdzać status zgłoszenia bez logowania!";
             header("Location: new_ticket.php");
             exit;
         } else {
