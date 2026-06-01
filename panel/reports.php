@@ -4,8 +4,8 @@ session_start();
 require_once '../config.php';
 
 // tylko administrator ma dostęp do raportów
-if ($_SESSION['role'] != 'admin') {
-    echo "Brak dostępu! Tylko administrator może przeglądać statystyki i raporty.";
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 

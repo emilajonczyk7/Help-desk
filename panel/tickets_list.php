@@ -5,7 +5,7 @@ require_once '../config.php';
 
 // tylko admin i pracownik mają tu dostęp
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
-    echo "Brak dostępu! Tylko obsługa Help Desku może przeglądać listę zgłoszeń.";
+    echo "Brak dostępu! Tylko obsługa Help Desku może tu wejść.";
     exit;
 }
 

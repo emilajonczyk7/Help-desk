@@ -4,8 +4,8 @@ session_start();
 require_once '../config.php';
 
 // Sprawdzenie czy użytkownik to admin
-if ($_SESSION['role'] != 'admin') {
-    echo "Brak dostępu!";
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 

@@ -4,8 +4,8 @@ session_start();
 require_once '../config.php';
 
 // tylko Admin może tu wejść
-if ($_SESSION['role'] != 'admin') {
-    echo "Brak dostępu! Tylko administrator może resetować hasła.";
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 

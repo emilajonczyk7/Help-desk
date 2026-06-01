@@ -4,8 +4,8 @@ session_start();
 require_once '../config.php';
 
 // tylko admin ma dostęp do zarządzania kategoriami
-if ($_SESSION['role'] != 'admin') {
-    echo "Brak dostępu! Tylko administrator może zarządzać kategoriami.";
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 

@@ -3,8 +3,8 @@ session_start();
 require_once '../config.php';
 
 // tylko admin i user ma dostęp
-if (!isset($_SESSION['role']) || $_SESSION['role'] == 'guest') {
-    echo "Brak dostępu! Tylko obsługa może trwale usuwać zgłoszenia.";
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
+    echo "Brak dostępu! Tylko obsługa Help Desku może tu wejść.";
     exit;
 }
 
