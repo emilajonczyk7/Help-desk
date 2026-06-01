@@ -19,6 +19,9 @@ $role = $_SESSION['role'];
 </head>
 <body>
     <h2>Witaj w panelu, <?php echo $username; ?>!</h2>
+    
+    <?php include 'flash_messages.php'; ?>
+    
     <p>Twoja rola w systemie to: <strong><?php echo $role; ?></strong></p>
     
     <hr>

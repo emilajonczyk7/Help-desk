@@ -56,17 +56,7 @@ $wynik = mysqli_query($conn, $zapytanie_zdloszenia);
 <body>
     <h2>Wszystkie zgłoszenia (Tickety)</h2>
     
-    <?php
-    // Wyświetlanie komunikatów z sesji (np. po pomyślnym usunięciu zgłoszenia)
-    if (isset($_SESSION['success_message'])) {
-        echo "<p style='color: green; font-weight: bold; background-color: #e6f4ea; padding: 10px; border: 1px solid green; display: inline-block;'>" . $_SESSION['success_message'] . "</p>";
-        unset($_SESSION['success_message']);
-    }
-    if (isset($_SESSION['error_message'])) {
-        echo "<p style='color: red; font-weight: bold;'>" . $_SESSION['error_message'] . "</p>";
-        unset($_SESSION['error_message']);
-    }
-    ?>
+    <?php include 'flash_messages.php'; ?>
     
     <p><a href="dashboard.php">Powrót do panelu</a></p>
     

@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['
     exit;
 }
 
-$message = "";
 $ticket_id = $_GET['id'];
 $current_user_id = $_SESSION['user_id'];
 
@@ -25,7 +24,10 @@ if (isset($_POST['submit_update'])) {
     $stmt = mysqli_prepare($conn, $zapytanie_update);
     mysqli_stmt_bind_param($stmt, "sii", $new_status, $assigned_to, $ticket_id);
     if (mysqli_stmt_execute($stmt)) {
-        $message = "Zaktualizowano zgłoszenie!";
+        // Zapisujemy komunikat do sesji i przekierowujemy, by zapobiec ponownemu wysłaniu
+        $_SESSION['success_message'] = "Zaktualizowano zgłoszenie!";
+        header("Location: ticket_view.php?id=" . $ticket_id);
+        exit;
     }
 }
 
@@ -37,7 +39,10 @@ if (isset($_POST['submit_comment'])) {
         $stmt_kom = mysqli_prepare($conn, $zapytanie_kom);
         mysqli_stmt_bind_param($stmt_kom, "iis", $ticket_id, $current_user_id, $content);
         if (mysqli_stmt_execute($stmt_kom)) {
-            $message = "Dodano odpowiedź!";
+            // PRG po udanym dodaniu komentarza
+            $_SESSION['success_message'] = "Dodano odpowiedź!";
+            header("Location: ticket_view.php?id=" . $ticket_id);
+            exit;
         }
     }
 }
@@ -70,7 +75,7 @@ $wynik_komentarze = mysqli_stmt_get_result($stmt_comments);
     <h2>Zgłoszenie nr <?php echo $ticket_id; ?></h2>
     <a href="tickets_list.php">Wróć do listy</a><br><br>
 
-    <b><span style="color: green;"><?php echo $message; ?></span></b>
+    <?php include 'flash_messages.php'; ?>
 
     <table border="1" cellpadding="5">
         <tr><td><b>Tytuł:</b></td><td><?php echo $ticket['title']; ?></td></tr>

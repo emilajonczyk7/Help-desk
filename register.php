@@ -1,50 +1,56 @@
 <?php
+session_start();
 require_once 'config.php';
 
 $message = "";
 $error_message = "";
 
-// użytkownik wciska przycisk "Zarejestruj się"
 if (isset($_POST['submit_register'])) {
     
-    // pobranie danych z formularza
-    $username = $_POST['username'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    
-    // stałe wartości klienta
-    $role = 'guest'; // dostaje rolę Guest
-    $active = 1;     // konto jest aktywne
+    //Oczyszczanie danych 
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password']; 
 
-    // czy ktoś nie próbuje zająć istniejącego loginu
-    $zapytanie_sprawdz = "SELECT id FROM users WHERE username = ?";
-    $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
-    mysqli_stmt_bind_param($stmt_sprawdz, "s", $username);
-    mysqli_stmt_execute($stmt_sprawdz);
-    $wynik_sprawdz = mysqli_stmt_get_result($stmt_sprawdz);
-
-    if (mysqli_num_rows($wynik_sprawdz) > 0) {
-        // jeżeli login jest zajęty
-        $error_message = "Podany login jest już zajęty! Wybierz inną nazwę.";
+    // Właściwa walidacja
+    if (empty($username) || empty($email) || empty($password)) {
+        $error_message = "Błąd: Wszystkie pola są wymagane!";
+    } else if (strlen($username) < 4) {
+        $error_message = "Błąd: Login musi mieć co najmniej 4 znaki.";
+    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Specjalna funkcja PHP do sprawdzania poprawności adresu e-mail
+        $error_message = "Błąd: Podano niepoprawny format adresu e-mail!";
+    } else if (strlen($password) < 5) {
+        $error_message = "Błąd: Hasło musi składać się z minimum 5 znaków.";
     } else {
-        // jeżeli login jest wolny 
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-
-        $zapytanie_dodaj = "INSERT INTO users (username, password, email, role, active) VALUES (?, ?, ?, ?, ?)";
-        $stmt_dodaj = mysqli_prepare($conn, $zapytanie_dodaj);
         
-        mysqli_stmt_bind_param($stmt_dodaj, "ssssi", $username, $hashed_password, $email, $role, $active);
-
-        if (mysqli_stmt_execute($stmt_dodaj)) {
-            $message = "Konto zostało założone pomyślnie! Możesz się teraz zalogować.";
+        //Sprawdzanie w bazie 
+        $zapytanie_sprawdz = "SELECT id FROM users WHERE username = ? OR email = ?";
+        $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
+        mysqli_stmt_bind_param($stmt_sprawdz, "ss", $username, $email);
+        mysqli_stmt_execute($stmt_sprawdz);
+        mysqli_stmt_store_result($stmt_sprawdz);
+        
+        if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
+            $error_message = "Błąd: Użytkownik o takim loginie lub e-mailu już istnieje!";
         } else {
-            $error_message = "Wystąpił błąd techniczny podczas rejestracji.";
+            //szyfrujemy hasło i zapisujemy do bazy
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $role = 'guest'; 
+            $active = 1;  
+            
+            $zapytanie = "INSERT INTO users (username, password, email, role, active) VALUES (?, ?, ?, ?, ?)";
+            $stmt = mysqli_prepare($conn, $zapytanie);
+            mysqli_stmt_bind_param($stmt, "ssssi", $username, $hashed_password, $email, $role, $active);
+            
+            if (mysqli_stmt_execute($stmt)) {
+                $message = "Rejestracja zakończona sukcesem! Możesz się teraz zalogować.";
+            } else {
+                $error_message = "Krytyczny błąd bazy danych.";
+            }
         }
-        
-        mysqli_stmt_close($stmt_dodaj);
+        mysqli_stmt_close($stmt_sprawdz);
     }
-    
-    mysqli_stmt_close($stmt_sprawdz);
 }
 ?>
 
@@ -52,28 +58,30 @@ if (isset($_POST['submit_register'])) {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Rejestracja - Help Desk</title>
+    <title>Rejestracja</title>
 </head>
 <body>
-    <h2>Załóż konto w systemie Help Desk</h2>
+    <h2>Rejestracja nowego Klienta</h2>
     
-    <p><a href="login.php">⬅ Powrót do strony logowania</a></p>
-
     <p style="color: green;"><b><?php echo $message; ?></b></p>
-    
     <p style="color: red;"><b><?php echo $error_message; ?></b></p>
 
     <form method="POST">
-        Wybierz swój Login: <br>
-        <input type="text" name="username" required><br><br>
+        Login:<br>
+        <input type="text" name="username" required minlength="4" maxlength="50"><br><br>
         
-        Twój adres e-mail: <br>
-        <input type="email" name="email" required><br><br>
+        Adres e-mail:<br>
+        <input type="email" name="email" required maxlength="100"><br><br>
         
-        Wpisz bezpieczne Hasło: <br>
-        <input type="password" name="password" required><br><br>
+        Hasło:<br>
+        <input type="password" name="password" required minlength="5"><br><br>
         
         <input type="submit" name="submit_register" value="Zarejestruj się">
     </form>
+
+    <br>
+    <hr style="width: 300px; margin-left: 0;">
+    <p><a href="login.php">⬅ Masz już konto? Zaloguj się</a></p>
+
 </body>
 </html>
