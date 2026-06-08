@@ -2,13 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: tylko admin i pracownik
+// dostęp tylko dla admina i pracownika
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
     echo "Brak dostępu!";
     exit;
 }
 
-// Zabezpieczenie przed brakiem ID
+// walidacja ID zgłoszenia z URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "Nieprawidłowe ID zgłoszenia.";
     header("Location: tickets_list.php");
@@ -18,7 +18,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $ticket_id = $_GET['id'];
 $current_user_id = $_SESSION['user_id'];
 
-// 1. Zmiana statusu i przypisania
+// Logika aktualizacji statusu i przypisanego pracownika
 if (isset($_POST['submit_update'])) {
     $new_status = $_POST['status'];
     $assigned_to = $_POST['assigned_to'];
@@ -37,7 +37,7 @@ if (isset($_POST['submit_update'])) {
     }
 }
 
-// 2. Dodawanie komentarza
+// Logika dodawania komentarza
 if (isset($_POST['submit_comment'])) {
     $content = trim($_POST['content']);
     if ($content != "") {
@@ -56,7 +56,7 @@ if (isset($_POST['submit_comment'])) {
     }
 }
 
-// 3. Pobranie danych ticketa
+// Pobranie danych zgłoszenia wraz z kategorią i autorem
 $zapytanie_ticket = "
     SELECT t.*, c.name AS nazwa_kategorii, u.username AS zglaszajacy 
     FROM tickets t 
@@ -69,17 +69,17 @@ mysqli_stmt_bind_param($stmt_ticket, "i", $ticket_id);
 mysqli_stmt_execute($stmt_ticket);
 $ticket = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_ticket));
 
-// Jeśli ticket o takim ID nie istnieje, wyrzuć na listę
+// weryfikacja czy zgłoszenie istnieje
 if (!$ticket) {
     $_SESSION['error_message'] = "Zgłoszenie nie istnieje.";
     header("Location: tickets_list.php");
     exit;
 }
 
-// 4. Lista pracowników do przypisania
+// Pobranie listy użytkowników do pola wyboru "przypisz do"
 $wynik_pracownicy = mysqli_query($conn, "SELECT id, username FROM users WHERE role = 'user' OR role = 'admin'");
 
-// 5. Pobieranie komentarzy
+// Pobranie historii komentarzy
 $zapytanie_komentarze = "
     SELECT cm.content, cm.created_at, u.username, u.role 
     FROM comments cm 
@@ -92,7 +92,6 @@ mysqli_stmt_bind_param($stmt_comments, "i", $ticket_id);
 mysqli_stmt_execute($stmt_comments);
 $wynik_komentarze = mysqli_stmt_get_result($stmt_comments);
 
-// Dołączamy nagłówek z Bootstrapem
 include 'header.php'; 
 ?>
 
@@ -142,7 +141,6 @@ include 'header.php';
         <?php if (mysqli_num_rows($wynik_komentarze) > 0): ?>
             <div class="mb-4">
                 <?php while ($kom = mysqli_fetch_assoc($wynik_komentarze)): 
-                    // Rozróżnienie koloru w zależności od tego, kto pisze
                     $bg_color = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'bg-white border' : 'bg-primary text-white shadow-sm';
                     $text_color = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'text-dark' : 'text-white';
                     $align = ($kom['role'] == 'guest' || $kom['role'] == null) ? 'text-start' : 'text-end';

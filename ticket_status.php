@@ -2,15 +2,15 @@
 require_once 'config.php';
 
 $message = "";
-$ticket = null; // Zmienna na dane zgłoszenia
-$wynik_komentarze = null; // Zmienna na komentarze
+$ticket = null;  
+$wynik_komentarze = null; 
 
-// Kiedy Klient wpisze numer i wciśnie przycisk "Sprawdź status"
+// Obsługa wyszukiwania zgłoszenia po ID
 if (isset($_POST['submit_check'])) {
     
-    $ticket_id = $_POST['ticket_id']; // Pobranie wpisanego numeru ID
+    $ticket_id = $_POST['ticket_id']; 
 
-    // Zapytanie wyszukujące zgłoszenie o podanym ID
+    // Pobranie danych zgłoszenia wraz z nazwą kategorii
     $zapytanie = "
         SELECT t.id, t.title, t.description, t.status, t.created_at, c.name AS nazwa_kategorii 
         FROM tickets t
@@ -23,13 +23,11 @@ if (isset($_POST['submit_check'])) {
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    // czy takie zgłoszenie istnieje w bazie
+    // Weryfikacja czy zgłoszenie o podanym ID istnieje
     if (mysqli_num_rows($result) == 1) {
-        
-        // wyciągamy dane do zmiennej $ticket
         $ticket = mysqli_fetch_assoc($result);
 
-        // pobieramy wszystkie komentarze do tego zgłoszenia
+        // Pobranie historii komentarzy dla danego zgłoszenia
         $zapytanie_kom = "
             SELECT cm.content, cm.created_at, u.username 
             FROM comments cm
@@ -40,7 +38,6 @@ if (isset($_POST['submit_check'])) {
         $stmt_kom = mysqli_prepare($conn, $zapytanie_kom);
         mysqli_stmt_bind_param($stmt_kom, "i", $ticket_id);
         mysqli_stmt_execute($stmt_kom);
-        
         $wynik_komentarze = mysqli_stmt_get_result($stmt_kom);
         
     } else {
@@ -60,8 +57,7 @@ if (isset($_POST['submit_check'])) {
     
     <p>
         <?php 
-        // Mały dodatek ułatwiający nawigację:
-        // Jeśli ktoś jest zalogowany, dajemy link do panelu. Jeśli to gość, link do strony głównej/logowania.
+        // Nawigacja zależna od sesji użytkownika
         if (isset($_SESSION['user_id'])) {
             echo '<a href="panel/dashboard.php">⬅ Powrót do panelu</a>';
         } else {
@@ -110,7 +106,7 @@ if (isset($_POST['submit_check'])) {
                 <td><b>Status problemu:</b></td>
                 <td>
                     <?php 
-                    // Kolorowanie statusów
+                    // Renderowanie statusu z odpowiednim formatowaniem
                     if ($ticket['status'] == 'nowe') {
                         echo "<span style='color: red; font-weight: bold;'>NOWE</span>";
                     } else if ($ticket['status'] == 'w trakcie') {
@@ -136,12 +132,9 @@ if (isset($_POST['submit_check'])) {
         <h3>Odpowiedzi od Help Desku:</h3>
         <div style="background-color: #f9f9f9; padding: 15px; width: 570px; border: 1px solid #ccc;">
             <?php 
-            // Sprawdzamy, czy są w ogóle jakieś komentarze
+            // Wyświetlanie historii komentarzy
             if (mysqli_num_rows($wynik_komentarze) > 0) {
-                // Wypisujemy komentarze jeden pod drugim w pętli
                 while ($komentarz = mysqli_fetch_assoc($wynik_komentarze)) {
-                    
-                    // Jeśli komentarz dodał niezalogowany użytkownik, wpisujemy "Klient"
                     $autor = $komentarz['username'];
                     if ($autor == "") {
                         $autor = "Ty (Klient)";

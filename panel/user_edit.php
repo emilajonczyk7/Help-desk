@@ -2,13 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: Tylko administrator ma dostęp do tej strony
+// dostęp tylko dla administratora
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może edytować użytkowników.";
     exit;
 }
 
-// Sprawdzenie, czy podano ID użytkownika
+// walidacja ID użytkownika przekazanego w URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "Nieprawidłowe ID użytkownika.";
     header("Location: users_list.php");
@@ -17,21 +17,21 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $edit_user_id = $_GET['id'];
 
-// Obsługa zapisu formularza
+// obsługa zapisu zmian w danych użytkownika
 if (isset($_POST['submit_edit_user'])) {
     
     $email = trim($_POST['email']);
     $role = $_POST['role'];
     $active = (int)$_POST['active'];
 
-    // Walidacja
+    // Walidacja pól formularza
     if (empty($email) || empty($role)) {
         $_SESSION['error_message'] = "Błąd: E-mail i Rola to pola wymagane!";
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error_message'] = "Błąd: Podano niepoprawny format adresu e-mail!";
     } else {
         
-        // Sprawdzenie, czy nowy e-mail nie jest już zajęty przez INNEGO użytkownika
+        // Sprawdzenie, czy nowy e-mail nie jest już zajęty przez inne konto
         $zapytanie_sprawdz = "SELECT id FROM users WHERE email = ? AND id != ?";
         $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
         mysqli_stmt_bind_param($stmt_sprawdz, "si", $email, $edit_user_id);
@@ -41,13 +41,12 @@ if (isset($_POST['submit_edit_user'])) {
         if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
             $_SESSION['error_message'] = "Błąd: Ten adres e-mail jest już przypisany do innego konta!";
         } else {
-            // Aktualizacja danych
+            // Aktualizacja danych użytkownika w bazie
             $zapytanie_update = "UPDATE users SET email = ?, role = ?, active = ? WHERE id = ?";
             $stmt = mysqli_prepare($conn, $zapytanie_update);
             mysqli_stmt_bind_param($stmt, "ssii", $email, $role, $active, $edit_user_id);
             
             if (mysqli_stmt_execute($stmt)) {
-                // Sukces -> przekierowanie z komunikatem (wzorzec PRG)
                 $_SESSION['success_message'] = "Pomyślnie zaktualizowano dane użytkownika!";
                 header("Location: users_list.php");
                 exit;
@@ -59,7 +58,7 @@ if (isset($_POST['submit_edit_user'])) {
     }
 }
 
-// Pobranie aktualnych danych użytkownika do wypełnienia formularza
+// Pobranie bieżących danych użytkownika do wypełnienia formularza
 $zapytanie_dane = "SELECT username, email, role, active FROM users WHERE id = ?";
 $stmt_dane = mysqli_prepare($conn, $zapytanie_dane);
 mysqli_stmt_bind_param($stmt_dane, "i", $edit_user_id);

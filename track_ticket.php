@@ -6,11 +6,11 @@ $ticket = null;
 $wynik_komentarze = null;
 $searched_id = '';
 
-// 1. Obsługa wyszukiwania zgłoszenia
+// Obsługa wyszukiwania zgłoszenia po ID 
 if (isset($_GET['ticket_id']) && is_numeric($_GET['ticket_id'])) {
     $searched_id = (int)$_GET['ticket_id'];
 
-    // Pobranie danych ticketa
+    // Pobranie danych ticketa wraz z nazwą kategorii
     $zapytanie_ticket = "
         SELECT t.*, c.name AS nazwa_kategorii 
         FROM tickets t 
@@ -23,7 +23,7 @@ if (isset($_GET['ticket_id']) && is_numeric($_GET['ticket_id'])) {
     $ticket = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_ticket));
 
     if ($ticket) {
-        // Pobieranie komentarzy dla tego ticketa
+        // Pobieranie historii komentarzy dla znalezionego ticketa
         $zapytanie_komentarze = "
             SELECT cm.content, cm.created_at, u.username, u.role 
             FROM comments cm 
@@ -40,14 +40,14 @@ if (isset($_GET['ticket_id']) && is_numeric($_GET['ticket_id'])) {
     }
 }
 
-// 2. Obsługa dodawania komentarza przez GOŚCIA
+// Logika dodawania komentarza przez gościa
 if (isset($_POST['submit_guest_comment'])) {
     $t_id = (int)$_POST['t_id'];
     $content = trim($_POST['content']);
 
     if (!empty($content)) {
+        //Zapis komentarza (user_id = null dla gościa)
         $guest_user_id = null; 
-        
         $zapytanie_kom = "INSERT INTO comments (ticket_id, user_id, content) VALUES (?, ?, ?)";
         $stmt_kom = mysqli_prepare($conn, $zapytanie_kom);
         mysqli_stmt_bind_param($stmt_kom, "iis", $t_id, $guest_user_id, $content);

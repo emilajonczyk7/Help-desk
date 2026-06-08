@@ -2,7 +2,7 @@
 session_start();
 require_once '../config.php';
 
-// do tej strony mają dostęp wszyscy, pod warunkiem, że są zalogowani
+// sprawdzenie, czy użytkownik jest zalogowany
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
     exit;
@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Pobieranie zgłoszeń dla aktualnie zalogowanego użytkownika
+// pobranie listy zgłoszeń użytkownika z przypisanymi nazwami kategorii
 $zapytanie = "
     SELECT t.id, t.title, t.status, t.created_at, c.name AS nazwa_kategorii 
     FROM tickets t
@@ -47,7 +47,7 @@ include 'header.php';
                 </thead>
                 <tbody>
                     <?php 
-                    // Sprawdzanie, czy użytkownik ma jakieś tickety
+                    // wyświetlanie listy zgłoszeń lub komunikatu o ich braku
                     if (mysqli_num_rows($wynik) > 0) {
                         
                         while($wiersz = mysqli_fetch_assoc($wynik)) {
@@ -56,12 +56,14 @@ include 'header.php';
                             echo "<td><strong>#" . $wiersz['id'] . "</strong></td>";
                             echo "<td class='text-start fw-bold'>" . htmlspecialchars($wiersz['title']) . "</td>";
                             
+                            // obsługa wyświetlania kategorii - jeśli brak, pokazujemy "Brak kategorii"
                             if ($wiersz['nazwa_kategorii'] != "") {
                                 echo "<td>" . htmlspecialchars($wiersz['nazwa_kategorii']) . "</td>";
                             } else {
                                 echo "<td class='text-muted'>Brak kategorii</td>";
                             }
                             
+                            // renderowanie badge'a zależnie od statusu zgłoszenia
                             echo "<td>";
                             if ($wiersz['status'] == 'nowe') {
                                 echo "<span class='badge bg-danger'>NOWE</span>";
@@ -74,7 +76,7 @@ include 'header.php';
                             
                             echo "<td><small>" . $wiersz['created_at'] . "</small></td>";
                             
-                            // Genialny trik: wysyłamy klienta do gotowego czatu z serwerem w track_ticket.php
+                            // przekierowanie do widoku śledzenia zgłoszenia
                             echo "<td><a href='../track_ticket.php?ticket_id=" . $wiersz['id'] . "' class='btn btn-info text-white btn-sm fw-bold shadow-sm'>🔍 Sprawdź / Odpisz</a></td>";
                             
                             echo "</tr>";

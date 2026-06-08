@@ -2,7 +2,7 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: dla każdego zalogowanego
+// dostęp dla każdego zalogowanego
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
     exit;
@@ -10,18 +10,19 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Obsługa zapisu danych
+// obsługa aktualizacji profilu
 if (isset($_POST['submit_profile'])) {
     $email = trim($_POST['email']);
-    $new_password = $_POST['new_password']; // Opcjonalne
+    $new_password = $_POST['new_password']; 
 
+    // walidacja podstawowa
     if (empty($email)) {
         $_SESSION['error_message'] = "Adres e-mail nie może być pusty.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error_message'] = "Podano nieprawidłowy format e-mail.";
     } else {
         
-        // Sprawdzamy czy mail nie należy już do kogoś innego
+        // Sprawdzenie unikalności e-maila
         $check = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ? AND id != ?");
         mysqli_stmt_bind_param($check, "si", $email, $user_id);
         mysqli_stmt_execute($check);
@@ -30,7 +31,7 @@ if (isset($_POST['submit_profile'])) {
         if (mysqli_stmt_num_rows($check) > 0) {
             $_SESSION['error_message'] = "Ten adres e-mail jest już zajęty przez innego użytkownika.";
         } else {
-            // Czy użytkownik wpisał nowe hasło?
+            // aktualizacja hasła, jeśli podano nowe
             if (!empty($new_password)) {
                 if (strlen($new_password) < 5) {
                     $_SESSION['error_message'] = "Nowe hasło musi mieć co najmniej 5 znaków.";
@@ -43,7 +44,7 @@ if (isset($_POST['submit_profile'])) {
                     }
                 }
             } else {
-                // Tylko aktualizacja e-maila
+                // aktualizacja tylko e-maila
                 $stmt = mysqli_prepare($conn, "UPDATE users SET email = ? WHERE id = ?");
                 mysqli_stmt_bind_param($stmt, "si", $email, $user_id);
                 if (mysqli_stmt_execute($stmt)) {
@@ -57,7 +58,7 @@ if (isset($_POST['submit_profile'])) {
     }
 }
 
-// Pobranie danych do wyświetlenia
+// Pobranie danych użytkownika do wyświetlenia w formularzu
 $stmt = mysqli_prepare($conn, "SELECT username, email, role FROM users WHERE id = ?");
 mysqli_stmt_bind_param($stmt, "i", $user_id);
 mysqli_stmt_execute($stmt);

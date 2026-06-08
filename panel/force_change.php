@@ -2,12 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: tylko zalogowani
+// sprawdzenie autoryzacji
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
     exit;
 }
 
+// obsługa zmiany hasła i wyłączenie flagi wymuszonej zmiany
 if (isset($_POST['submit_password_change'])) {
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
@@ -18,10 +19,10 @@ if (isset($_POST['submit_password_change'])) {
     } elseif ($new_password !== $confirm_password) {
         $error = "Podane hasła nie są identyczne.";
     } else {
-        // Szyfrujemy nowe hasło
+        // hashing hasła przed zapisem do bazy
         $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
         
-        // Zmieniamy hasło i zdejmujemy flagę "force_password_change" (ustawiamy na 0)
+        // aktualizacja rekordu użytkownika i zdjęcie flagi force_password_change
         $zapytanie = "UPDATE users SET password = ?, force_password_change = 0 WHERE id = ?";
         $stmt = mysqli_prepare($conn, $zapytanie);
         mysqli_stmt_bind_param($stmt, "si", $hashed_password, $user_id);

@@ -2,7 +2,7 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: Tylko administrator ma dostęp do raportów
+// dostęp do raportów tylko dla admina
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może przeglądać raporty.";
     exit;
@@ -10,22 +10,22 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 
 // --- POBIERANIE DANYCH STATYSTYCZNYCH Z BAZY ---
 
-// 1. Łączna liczba użytkowników
+// Liczba wszystkich użytkowników
 $wynik_users = mysqli_query($conn, "SELECT COUNT(id) AS total FROM users");
 $total_users = mysqli_fetch_assoc($wynik_users)['total'];
 
-// 2. Łączna liczba wszystkich zgłoszeń
+// Całkowita liczba zgłoszeń
 $wynik_tickets = mysqli_query($conn, "SELECT COUNT(id) AS total FROM tickets");
 $total_tickets = mysqli_fetch_assoc($wynik_tickets)['total'];
 
-// 3. Rozbicie zgłoszeń na statusy (nowe, w trakcie, zakończone)
+// Liczba zgłoszeń w podziale na statusy
 $status_counts = ['nowe' => 0, 'w trakcie' => 0, 'zakończone' => 0];
 $wynik_statusy = mysqli_query($conn, "SELECT status, COUNT(id) AS cnt FROM tickets GROUP BY status");
 while ($wiersz = mysqli_fetch_assoc($wynik_statusy)) {
     $status_counts[$wiersz['status']] = $wiersz['cnt'];
 }
 
-// 4. Liczba zgłoszeń w poszczególnych kategoriach
+// Zgłoszenia pogrupowane według kategorii
 $zapytanie_kategorie = "
     SELECT c.name AS nazwa_kategorii, COUNT(t.id) AS liczba_zgloszen 
     FROM categories c 

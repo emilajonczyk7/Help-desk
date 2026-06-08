@@ -2,27 +2,25 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: tylko admin i pracownik mają tu dostęp
+// dostęp tylko dla personelu (admin/user)
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
     echo "Brak dostępu! Tylko obsługa Help Desku może przeglądać listę zgłoszeń.";
     exit;
 }
 
-// --- Stronicowanie (15 zgłoszeń na stronę) ---
+// --- Konfiguracja stronicowania ---
 $limit = 15;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Zliczanie zgłoszeń w bazie potrzebne na przeliczenie stron
+// pobranie łącznej liczby zgłoszeń dla obliczenia ilości stron
 $zapytanie_count = "SELECT COUNT(id) AS total FROM tickets";
 $wynik_count = mysqli_query($conn, $zapytanie_count);
 $row_count = mysqli_fetch_assoc($wynik_count);
 $total_tickets = $row_count['total'];
-
-// Obliczanie liczby stron  
 $total_pages = ceil($total_tickets / $limit);
 
-// Wyciąganie danych z bazy z podmianą kategorii i użytkownika (z ID na nazwy)
+// pobranie listy zgłoszeń z przypisanymi nazwami kategorii i użytkowników
 $zapytanie_zdloszenia = "
     SELECT 
         t.id, 

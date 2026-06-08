@@ -2,12 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: Tylko administrator ma dostęp do tej akcji
+// dostęp tylko dla administratora
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu!";
     exit;
 }
 
+// walidacja ID użytkownika z URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "Nieprawidłowe ID użytkownika.";
     header("Location: users_list.php");
@@ -21,7 +22,7 @@ $tymczasowe_haslo = "Start123!";
 $hashed_password = password_hash($tymczasowe_haslo, PASSWORD_BCRYPT);
 $wymus_zmiane = 1;
 
-// Aktualizacja w bazie danych
+// Aktualizacja hasła i flagi w bazie danych
 $zapytanie = "UPDATE users SET password = ?, force_password_change = ? WHERE id = ?";
 $stmt = mysqli_prepare($conn, $zapytanie);
 mysqli_stmt_bind_param($stmt, "sii", $hashed_password, $wymus_zmiane, $reset_user_id);

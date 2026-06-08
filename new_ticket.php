@@ -2,7 +2,7 @@
 session_start();
 require_once 'config.php';
 
-// Pobranie kategorii do rozwijanej listy
+// Pobranie listy kategorii do formularza
 $kategorie = mysqli_query($conn, "SELECT id, name FROM categories ORDER BY name ASC");
 
 if (isset($_POST['submit_ticket'])) {
@@ -10,24 +10,24 @@ if (isset($_POST['submit_ticket'])) {
     $title = trim($_POST['title']);
     $category_id = $_POST['category_id'];
     $description = trim($_POST['description']);
-    $created_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null; // Rozróżnienie Zalogowany / Gość
-    $status = 'nowe'; // Domyślny status
-    
-    $attachment = null; // Domyślnie brak załącznika
+    // Ustalenie autora (zalogowany użytkownik lub null dla gościa)
+    $created_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null; 
+    $status = 'nowe'; 
+    $attachment = null; 
 
-    // OBSŁUGA PLIKU
+    // --- LOGIKA OBSŁUGI PLIKÓW ---
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
         
         $file_tmp = $_FILES['attachment']['tmp_name'];
         $file_name = basename($_FILES['attachment']['name']);
         $file_size = $_FILES['attachment']['size'];
         
-        // Zabezpieczenie przed nadpisywaniem (unikalna nazwa)
+        // Generowanie unikalnej nazwy pliku dla uniknięcia kolizji
         $unique_name = time() . "_" . $file_name;
         $upload_dir = 'uploads/';
         $target_file = $upload_dir . $unique_name;
 
-        // Dozwolone rozszerzenia
+        // Weryfikacja formatu i rozmiaru pliku
         $allowed_ext = ['jpg', 'jpeg', 'png', 'pdf', 'txt', 'zip'];
         $file_ext = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
@@ -40,10 +40,12 @@ if (isset($_POST['submit_ticket'])) {
             header("Location: new_ticket.php");
             exit;
         } else {
+            // Tworzenie katalogu, jeśli nie istnieje
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
             
+            // Przeniesienie pliku do docelowej lokalizacji
             if (move_uploaded_file($file_tmp, $target_file)) {
                 $attachment = $target_file;
             } else {
@@ -54,7 +56,7 @@ if (isset($_POST['submit_ticket'])) {
         }
     }
 
-    // Walidacja tekstowa i zapis do bazy
+    // --- ZAPIS ZGŁOSZENIA DO BAZY ---
     if (empty($title) || empty($description) || empty($category_id)) {
         $_SESSION['error_message'] = "Wypełnij wszystkie wymagane pola (Temat, Kategoria, Opis).";
     } else {
@@ -65,7 +67,6 @@ if (isset($_POST['submit_ticket'])) {
         
         if (mysqli_stmt_execute($stmt)) {
             $new_ticket_id = mysqli_insert_id($conn); 
-            
             $_SESSION['success_message'] = "Twoje zgłoszenie zostało wysłane! Numer Twojego zgłoszenia to: <span class='badge bg-dark fs-5'>#" . $new_ticket_id . "</span>.<br>Zapamiętaj ten numer, aby móc sprawdzać status zgłoszenia bez logowania!";
             header("Location: new_ticket.php");
             exit;

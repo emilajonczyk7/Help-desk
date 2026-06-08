@@ -7,24 +7,23 @@ $error_message = "";
 
 if (isset($_POST['submit_register'])) {
     
-    //Oczyszczanie danych 
+    // oczyszczanie danych wejściowych
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password']; 
 
-    // Właściwa walidacja
+    // walidacja danych wejściowych
     if (empty($username) || empty($email) || empty($password)) {
         $error_message = "Błąd: Wszystkie pola są wymagane!";
     } else if (strlen($username) < 4) {
         $error_message = "Błąd: Login musi mieć co najmniej 4 znaki.";
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        // Specjalna funkcja PHP do sprawdzania poprawności adresu e-mail
         $error_message = "Błąd: Podano niepoprawny format adresu e-mail!";
     } else if (strlen($password) < 5) {
         $error_message = "Błąd: Hasło musi składać się z minimum 5 znaków.";
     } else {
         
-        //Sprawdzanie w bazie 
+        //Sprawdzanie unikalności loginu i e-maila w bazie
         $zapytanie_sprawdz = "SELECT id FROM users WHERE username = ? OR email = ?";
         $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
         mysqli_stmt_bind_param($stmt_sprawdz, "ss", $username, $email);
@@ -34,7 +33,7 @@ if (isset($_POST['submit_register'])) {
         if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
             $error_message = "Błąd: Użytkownik o takim loginie lub e-mailu już istnieje!";
         } else {
-            //szyfrujemy hasło i zapisujemy do bazy
+            // hashowanie hasła i zapis nowego użytkownika do bazy
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
             $role = 'guest'; 
             $active = 1;  

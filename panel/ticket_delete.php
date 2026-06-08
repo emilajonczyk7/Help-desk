@@ -2,17 +2,17 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: tylko admin i pracownik
+// dostęp tylko dla admina i pracownika
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'user')) {
     echo "Brak dostępu!";
     exit;
 }
 
-// Sprawdzenie, czy przesłano poprawne ID
+// obsługa usuwania zgłoszenia po przekazanym ID
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $ticket_id = $_GET['id'];
 
-    // Pobranie nazwy załącznika
+    // usunięcie załącznika z serwera (jeśli istnieje)
     $zapytanie_plik = "SELECT attachment FROM tickets WHERE id = ?";
     $stmt_plik = mysqli_prepare($conn, $zapytanie_plik);
     mysqli_stmt_bind_param($stmt_plik, "i", $ticket_id);
@@ -26,14 +26,14 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     }
     mysqli_stmt_close($stmt_plik);
 
-    //Usunięcie wszystkich komentarzy powiązanych z tym zgłoszeniem
+    // usunięcie komentarzy powiązanych ze zgłoszeniem
     $zapytanie_komentarze = "DELETE FROM comments WHERE ticket_id = ?";
     $stmt_kom = mysqli_prepare($conn, $zapytanie_komentarze);
     mysqli_stmt_bind_param($stmt_kom, "i", $ticket_id);
     mysqli_stmt_execute($stmt_kom);
     mysqli_stmt_close($stmt_kom);
 
-    //Usunięcie głównego zgłoszenia
+    // usunięcie głównego zgłoszenia
     $zapytanie_usun = "DELETE FROM tickets WHERE id = ?";
     $stmt_usun = mysqli_prepare($conn, $zapytanie_usun);
     mysqli_stmt_bind_param($stmt_usun, "i", $ticket_id);

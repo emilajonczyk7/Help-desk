@@ -2,13 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: czy zalogowany użytkownik to administrator
+// dostęp tylko dla administratora
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może zarządzać użytkownikami.";
     exit;
 }
 
-// Pobieranie użytkowników z bazy
+// Pobieranie listy wszystkich użytkowników
 $zapytanie = "SELECT id, username, email, role, active FROM users ORDER BY id DESC";
 $result = $conn->query($zapytanie);
 
@@ -36,17 +36,16 @@ include 'header.php';
                 </thead>
                 <tbody>
                     <?php 
+                    // Wyświetlanie listy użytkowników
                     if ($result->num_rows > 0) {
                         
                         while($row = $result->fetch_assoc()) {
                             echo "<tr>";
-                            
                             echo "<td>" . $row['id'] . "</td>";
-                            
                             echo "<td class='fw-bold'>" . htmlspecialchars($row['username']) . "</td>";
-                            
                             echo "<td>" . htmlspecialchars($row['email']) . "</td>";
                             
+                            // Renderowanie badge'a roli
                             echo "<td>";
                             if ($row['role'] == 'admin') {
                                 echo "<span class='badge bg-danger'>Administrator</span>";
@@ -57,6 +56,7 @@ include 'header.php';
                             }
                             echo "</td>";
                             
+                            // Renderowanie statusu konta
                             echo "<td>";
                             if ($row['active'] == 1) {
                                 echo "<span class='badge bg-success'>Aktywne</span>";
@@ -65,11 +65,11 @@ include 'header.php';
                             }
                             echo "</td>";
                             
+                            // Przyciski akcji
                             echo "<td>";
                             echo "<a href='user_edit.php?id=" . $row['id'] . "' class='btn btn-outline-primary btn-sm me-2'>✏️ Edytuj</a>";
                             echo "<a href='user_reset_password.php?id=" . $row['id'] . "' onclick='return confirm(\"Czy na pewno chcesz zresetować hasło temu użytkownikowi na tymczasowe: Start123!\")' class='btn btn-outline-danger btn-sm'>🔄 Reset hasła</a>";
                             echo "</td>";
-                            
                             echo "</tr>";
                         }
                         

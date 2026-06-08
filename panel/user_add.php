@@ -2,21 +2,22 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: Tylko administrator ma dostęp do tej strony
+// dostęp tylko dla administratora
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może dodawać użytkowników.";
     exit;
 }
 
+// walidacja ID użytkownika przekazanego w URL
 if (isset($_POST['submit_add_user'])) {
     
-    // 1. Oczyszczanie danych
+    // pobranie i oczyszczenie danych z formularza
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $role = $_POST['role'];
 
-    // 2. WŁAŚCIWA WALIDACJA PHP (Błędy wrzucamy do sesji, żeby wyświetlił je nasz Flash Message)
+    // walidacja danych wejściowych
     if (empty($username) || empty($email) || empty($password) || empty($role)) {
         $_SESSION['error_message'] = "Błąd: Wypełnij wszystkie wymagane pola!";
     } else if (strlen($username) < 4) {
@@ -27,7 +28,7 @@ if (isset($_POST['submit_add_user'])) {
         $_SESSION['error_message'] = "Błąd: Hasło musi składać się z minimum 5 znaków.";
     } else {
         
-        // 3. Sprawdzenie, czy użytkownik o takim loginie lub mailu już istnieje
+        // sprawdzenie, czy użytkownik już istnieje w bazie
         $zapytanie_sprawdz = "SELECT id FROM users WHERE username = ? OR email = ?";
         $stmt_sprawdz = mysqli_prepare($conn, $zapytanie_sprawdz);
         mysqli_stmt_bind_param($stmt_sprawdz, "ss", $username, $email);
@@ -37,16 +38,15 @@ if (isset($_POST['submit_add_user'])) {
         if (mysqli_stmt_num_rows($stmt_sprawdz) > 0) {
             $_SESSION['error_message'] = "Błąd: Użytkownik o takim loginie lub e-mailu już istnieje w bazie!";
         } else {
-            // 4. Jeśli wszystko OK, szyfrujemy hasło i zapisujemy
+            // szyfrowanie hasła i zapis nowego użytkownika
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $active = 1; // Nowe konto jest od razu aktywne
+            $active = 1;
             
             $zapytanie = "INSERT INTO users (username, password, email, role, active) VALUES (?, ?, ?, ?, ?)";
             $stmt = mysqli_prepare($conn, $zapytanie);
             mysqli_stmt_bind_param($stmt, "ssssi", $username, $hashed_password, $email, $role, $active);
             
             if (mysqli_stmt_execute($stmt)) {
-                // Sukces -> przekierowanie z komunikatem (wzorzec PRG)
                 $_SESSION['success_message'] = "Pomyślnie dodano nowego użytkownika: " . $username;
                 header("Location: users_list.php");
                 exit;

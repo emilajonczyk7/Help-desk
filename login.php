@@ -2,7 +2,7 @@
 session_start();
 require_once 'config.php';
 
-// Jeśli użytkownik jest już zalogowany, od razu rzucamy go do panelu
+// jeśli użytkownik jest zalogowany, przekieruj go do panelu
 if (isset($_SESSION['user_id'])) {
     header("Location: panel/dashboard.php");
     exit;
@@ -15,6 +15,7 @@ if (isset($_POST['submit_login'])) {
     if (empty($username) || empty($password)) {
         $_SESSION['error_message'] = "Wprowadź login i hasło.";
     } else {
+        // pobranie danych użytkownika z bazy
         $zapytanie = "SELECT id, username, password, role, active, force_password_change FROM users WHERE username = ?";
         $stmt = mysqli_prepare($conn, $zapytanie);
         mysqli_stmt_bind_param($stmt, "s", $username);
@@ -22,19 +23,19 @@ if (isset($_POST['submit_login'])) {
         $wynik = mysqli_stmt_get_result($stmt);
 
         if ($user = mysqli_fetch_assoc($wynik)) {
-            // Sprawdzamy, czy konto nie jest zablokowane
+            // sprawdzenie, czy konto nie jest zablokowane
             if ($user['active'] == 0) {
                 $_SESSION['error_message'] = "Twoje konto zostało zablokowane. Skontaktuj się z administratorem.";
             } 
-            // Weryfikacja hasła
+            // weryfikacja hasła
             else if (password_verify($password, $user['password'])) {
                 
-                // Zapisujemy dane do sesji
+                // Zapisanie danych do sesji
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
 
-                // Sprawdzamy, czy admin wymusił zmianę hasła
+                // Sprawdzenie, czy admin wymusił zmianę hasła
                 if ($user['force_password_change'] == 1) {
                     header("Location: panel/force_change.php");
                 } else {

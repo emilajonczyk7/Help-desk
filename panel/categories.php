@@ -2,13 +2,13 @@
 session_start();
 require_once '../config.php';
 
-// Zabezpieczenie: Tylko administrator ma dostęp do tej strony
+// dostęp tylko dla admina
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     echo "Brak dostępu! Tylko administrator może zarządzać kategoriami.";
     exit;
 }
 
-// 1. OBSŁUGA USUWANIA KATEGORII
+// obsługa usuwania kategorii ale najpierw sprawdzamy czy nie jest używana przez jakieś zgłoszenia
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $del_id = $_GET['delete'];
     
@@ -36,7 +36,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     exit;
 }
 
-// 2. OBSŁUGA DODAWANIA NOWEJ KATEGORII
+// obsługa dodawania nowej kategorii
 if (isset($_POST['submit_add_category'])) {
     $name = trim($_POST['name']);
     
@@ -57,7 +57,7 @@ if (isset($_POST['submit_add_category'])) {
     exit;
 }
 
-// Pobranie listy kategorii do wyświetlenia w tabeli
+// Pobranie listy kategorii do tabeli 
 $wynik_kategorie = mysqli_query($conn, "SELECT * FROM categories ORDER BY name ASC");
 
 include 'header.php'; 
