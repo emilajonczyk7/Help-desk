@@ -3,9 +3,8 @@
 Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wykorzystaniem bazy danych MySQL/MariaDB. Aplikacja pozwala klientom (również niezalogowanym gościom) na przesyłanie zgłoszeń wsparcia, bezpieczne dodawanie załączników oraz dwustronną komunikację z działem obsługi. Administratorzy posiadają pełny panel zarządzania użytkownikami, kategoriami zgłoszeń oraz wgląd w statystyki systemu.
 
 ## 💻 Wymagania systemowe
-* wersja apache'a: **2.4.x** 
-* wersja PHP'a: **8.2.12**
-* wersja MySQL: **10.4.32-MariaDB**
+* Wersja Apache: **2.4.x** * Wersja PHP: **8.2.12**
+* Wersja MySQL: **10.4.32-MariaDB**
 
 ## ✨ Funkcjonalności systemu
 * **Zarządzanie zgłoszeniami:** Tworzenie, przeglądanie, przypisywanie pracowników oraz zmiana statusów (Nowe -> W trakcie -> Zakończone).
@@ -23,26 +22,27 @@ Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wyk
 2. **Pracownik / Wsparcie (`user`):** Posiada wgląd do wszystkich ticketów w systemie. Może przypisać zgłoszenie do siebie lub innego pracownika, aktualizować statusy oraz odpowiadać klientom.
 3. **Klient / Gość (`guest` / niezalogowany):** Może zarejestrować konto, tworzyć nowe zgłoszenia z załącznikami oraz śledzić status i korespondencję swojego zgłoszenia bez logowania (za pomocą unikalnego numeru ID zgłoszenia).
 
-## 🚀 Instalacja
-Projekt jest w pełni przystosowany do uruchomienia w lokalnym środowisku programistycznym (np. XAMPP).
+## 🚀 Instalacja i wdrożenie na serwerze
 
 1. **Umieszczenie plików projektu:**
-   Pobierz kod projektu i umieść go w katalogu głównym serwera Apache (np. `C:\xampp\htdocs\Help-desk`).
+   Pobierz kod projektu i umieść go w katalogu głównym serwera WWW (np. `public_html`, `htdocs` lub główny folder domeny).
 
 2. **Uprawnienia katalogów:**
-   System wymaga uprawnień zapisu do przechowywania przesyłanych przez użytkowników załączników.
-   * **Katalog docelowy:** `uploads/`
-   * **Wymagane uprawnienia:** Należy upewnić się, że proces serwera WWW ma uprawnienia do zapisu w tym folderze (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
+   System wymaga uprawnień zapisu do przechowywania przesyłanych przez użytkowników załączników. Należy upewnić się, że proces serwera ma uprawnienia do zapisu w folderze `uploads/` (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
 
-3. **Konfiguracja połączenia z bazą:**
-   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). Plik `config.php` jest już dołączony do repozytorium i gotowy do działania. W razie konieczności zmiany danych serwerowych, zaktualizuj odpowiednie zmienne w plikach `config.php` oraz `install.php`.
+3. **Inicjalizacja bazy danych:**
+   * Utwórz nową bazę danych w panelu hostingowym lub poprzez phpMyAdmin.
+   * Przejdź do zakładki "Import" w phpMyAdmin i wgraj plik struktury bazy danych znajdujący się w projekcie: `database/helpdesk.sql`.
 
-4. **Automatyczna instalacja (Instalator PHP):**
-   * Otwórz przeglądarkę internetową i przejdź pod adres instalatora: `http://localhost/Help-desk/install.php`
-   * Skrypt instalacyjny automatycznie połączy się z serwerem, utworzy bazę danych `helpdesk`, zaimportuje strukturę tabel oraz doda konta testowe.
+4. **Konfiguracja połączenia z bazą:**
+   * Otwórz plik `config.php` (znajdujący się w głównym katalogu) i zaktualizuj dane dostępowe do nowo utworzonej bazy danych (zmienne: `$db_host`, `$db_user`, `$db_password`, `$db_name`).
 
-5. **Uruchomienie aplikacji:**
-   * Po pojawieniu się komunikatów o pomyślnej instalacji, kliknij przycisk na dole strony lub przejdź bezpośrednio pod adres: `http://localhost/Help-desk/login.php`
+5. **Weryfikacja środowiska:**
+   * Projekt zawiera wbudowany skrypt weryfikujący (plik `index.php`), który uruchamia się domyślnie po wejściu na główny adres aplikacji (np. `http://10.6.253.19/~jonczyk/`). 
+   * Pełni on funkcję testera połączenia z bazą – jego uruchomienie potwierdzi prawidłową konfigurację środowiska.
+
+6. **Uruchomienie aplikacji:**
+   * Jeśli skrypt weryfikujący wyświetla zielone komunikaty, aplikacja jest gotowa do działania. Przejdź pod adres domeny z dopiskiem `/login.php` (lub kliknij przycisk na ekranie weryfikatora), aby rozpocząć korzystanie z systemu.
 
 ## ✍️ Autorzy
 * **Natalia Flaszka**
