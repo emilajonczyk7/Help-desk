@@ -3,7 +3,8 @@
 Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wykorzystaniem bazy danych MySQL/MariaDB. Aplikacja pozwala klientom (również niezalogowanym gościom) na przesyłanie zgłoszeń wsparcia, bezpieczne dodawanie załączników oraz dwustronną komunikację z działem obsługi. Administratorzy posiadają pełny panel zarządzania użytkownikami, kategoriami zgłoszeń oraz wgląd w statystyki systemu.
 
 ## 💻 Wymagania systemowe
-* Wersja Apache: **2.4.58** * Wersja PHP: **8.2.12**
+* Wersja Apache: **2.4.58** 
+* Wersja PHP: **8.2.12**
 * Wersja MySQL: **10.4.32-MariaDB**
 
 ## ✨ Funkcjonalności systemu
@@ -24,30 +25,25 @@ Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wyk
 
 ## 🚀 Instalacja i wdrożenie na serwerze
 
-System został wyposażony w automatyczny instalator środowiska, co eliminuje potrzebę ręcznego importowania bazy danych przez phpMyAdmin.
-
 1. **Umieszczenie plików projektu:**
-   Prześlij zawartość projektu do katalogu głównego serwera WWW (np. `public_html`).
+   * Pobierz kod projektu i umieść go w katalogu głównym serwera WWW (np. `public_html` lub główny folder domeny). Upewnij się, że wgrany został również folder `database/` z plikiem `.sql`.
 
 2. **Uprawnienia katalogów:**
-   Upewnij się, że proces serwera posiada uprawnienia do zapisu w folderze `uploads/` (w środowiskach Linux zalecane `chmod 755` lub `777` w zależności od konfiguracji serwera).
+   * Upewnij się, że proces serwera posiada uprawnienia do zapisu w folderze `uploads/` (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/` lub `chmod 755 uploads/` w zależności od konfiguracji serwera).
 
 3. **Konfiguracja połączenia z bazą:**
-   Otwórz plik `config.php` i uzupełnij zmienne `$db_user`, `$db_password` oraz `$db_name` zgodnie z danymi dostępowymi do Twojej bazy danych MySQL na serwerze.
+   * Otwórz plik `config.php` (oraz plik instalatora: `index.php`) i uzupełnij zmienne `$db_user`, `$db_password` oraz `$db_name` zgodnie z danymi dostępowymi do Twojej bazy danych MySQL na serwerze.
 
-4. **Automatyczna inicjalizacja:**
-   Wejdź na adres główny swojej aplikacji (np. `http://10.6.253.19/~jonczyk/`).
-   * System automatycznie uruchomi instalator, który nawiąże połączenie z bazą danych.
-   * Instalator samodzielnie wgra strukturę tabel oraz dane testowe z pliku `database/helpdesk.sql`.
-   * Po wyświetleniu zielonych komunikatów o sukcesie, kliknij przycisk "Przejdź do strony logowania", aby rozpocząć korzystanie z systemu.
+4. **Automatyczna inicjalizacja bazy danych:**
+   * Projekt zawiera wbudowany instalator, który uruchamia się domyślnie po wejściu na adres główny aplikacji (np. `http://10.6.253.19/~flaszkan/`). 
+   * Skrypt ten automatycznie weryfikuje połączenie z serwerem i **samodzielnie importuje strukturę tabel oraz dane testowe** z pliku `helpdesk.sql`. Nie ma potrzeby ręcznego wgrywania bazy przez phpMyAdmin.
+
+5. **Uruchomienie aplikacji:**
+   * Jeśli instalator wyświetli zielone komunikaty o sukcesie operacji, system jest w pełni gotowy do działania. Kliknij przycisk **"Przejdź do strony logowania"** na ekranie instalatora, aby rozpocząć korzystanie z panelu.
 
 ## ✍️ Autorzy
 * **Natalia Flaszka**
-  * *nr albumu:* 420530
-  * *login z manticore'y:* flaszkan
 * **Zuzanna Jonczyk**
-  * *nr albumu:* 420537
-  * *login z manticore'y:* jonczyk
 
 ## 📚 Wykorzystane zewnętrzne biblioteki
 * Bootstrap (wersja **5.3.3**)
