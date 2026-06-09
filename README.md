@@ -35,7 +35,7 @@ Projekt jest w pełni przystosowany do uruchomienia w lokalnym środowisku progr
    * **Wymagane uprawnienia:** Należy upewnić się, że proces serwera WWW ma uprawnienia do zapisu w tym folderze (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
 
 3. **Konfiguracja połączenia z bazą:**
-   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). W razie konieczności zmiany danych, zaktualizuj odpowiednie zmienne w plikach `config.php` oraz `install.php`.
+   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). Plik `config.php` jest już dołączony do repozytorium i gotowy do działania. W razie konieczności zmiany danych serwerowych, zaktualizuj odpowiednie zmienne w plikach `config.php` oraz `install.php`.
 
 4. **Automatyczna instalacja (Instalator PHP):**
    * Otwórz przeglądarkę internetową i przejdź pod adres instalatora: `http://localhost/Help-desk/install.php`
