@@ -27,23 +27,22 @@ Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wyk
 Projekt jest w pełni przystosowany do uruchomienia w lokalnym środowisku programistycznym (np. XAMPP).
 
 1. **Umieszczenie plików projektu:**
-   Pobierz kod projektu i umieść go w katalogu głównym serwera Apache (np. `C:\xampp\htdocs\helpdesk`).
+   Pobierz kod projektu i umieść go w katalogu głównym serwera Apache (np. `C:\xampp\htdocs\Help-desk`).
 
 2. **Uprawnienia katalogów:**
    System wymaga uprawnień zapisu do przechowywania przesyłanych przez użytkowników załączników.
    * **Katalog docelowy:** `uploads/`
    * **Wymagane uprawnienia:** Należy upewnić się, że proces serwera WWW ma uprawnienia do zapisu w tym folderze (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
 
-3. **Konfiguracja bazy danych:**
-   * Uruchom serwer MySQL i przejdź do panelu **phpMyAdmin** (`http://localhost/phpmyadmin`).
-   * Utwórz nową, pustą bazę danych o nazwie `helpdesk` z kodowaniem `utf8mb4_unicode_ci`.
-   * Przejdź do zakładki *Import*, wybierz plik struktury `helpdesk.sql` (znajdujący się w folderze `database/`) i zatwierdź import.
+3. **Konfiguracja połączenia z bazą:**
+   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). W razie konieczności zmiany danych, zaktualizuj odpowiednie zmienne w plikach `config.php` oraz `install.php`.
 
-4. **Konfiguracja połączenia z bazą:**
-   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). W razie konieczności zmiany danych, zaktualizuj plik `config.php`.
+4. **Automatyczna instalacja (Instalator PHP):**
+   * Otwórz przeglądarkę internetową i przejdź pod adres instalatora: `http://localhost/Help-desk/install.php`
+   * Skrypt instalacyjny automatycznie połączy się z serwerem, utworzy bazę danych `helpdesk`, zaimportuje strukturę tabel oraz doda konta testowe.
 
 5. **Uruchomienie aplikacji:**
-   * Otwórz przeglądarkę internetową i przejdź pod adres: `http://localhost/helpdesk/login.php`
+   * Po pojawieniu się komunikatów o pomyślnej instalacji, kliknij przycisk na dole strony lub przejdź bezpośrednio pod adres: `http://localhost/Help-desk/login.php`
 
 ## ✍️ Autorzy
 * **Natalia Flaszka**
