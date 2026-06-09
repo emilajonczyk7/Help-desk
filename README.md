@@ -1,58 +1,57 @@
-# 🛠️ Help Desk Ticketing System
+# 🛠️ System Zgłoszeń Help Desk
 
-A robust, custom-built Help Desk ticketing system developed in PHP and MySQL. This application allows clients to submit support tickets, attach files, and communicate with the support staff, while providing administrators with full control over users and categories.
+Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wykorzystaniem bazy danych MySQL/MariaDB. Aplikacja pozwala klientom (również niezalogowanym gościom) na przesyłanie zgłoszeń wsparcia, bezpieczne dodawanie załączników oraz dwustronną komunikację z działem obsługi. Administratorzy posiadają pełny panel zarządzania użytkownikami, kategoriami zgłoszeń oraz wgląd w statystyki systemu.
 
-## 💻 System Requirements
-* **Apache:** version [2.4+]
-* **PHP:** version [8.0+]
-* **MySQL/MariaDB:** version [10+]
+## 💻 Wymagania systemowe
+* wersja apache'a: **2.4.x** 
+* wersja PHP'a: **8.2.12**
+* wersja MySQL: **10.4.32-MariaDB**
 
-## ✨ Features
-* **Ticket Management:** Create, view, update, and resolve support tickets.
-* **File Attachments:** Safely upload files (images, PDFs, text files) to tickets with automatic size and extension validation.
-* **Role-Based Access Control (RBAC):** Three distinct user levels with specific permissions.
-* **Communication History:** Built-in commenting system for each ticket.
-* **Robust Security:**
-  * Password hashing (`PASSWORD_BCRYPT`).
-  * PRG (Post-Redirect-Get) pattern with Flash Messages to prevent form resubmission.
-  * Server-side data validation (`trim`, `empty`, `filter_var`).
-  * Session-based route protection for all panel files.
-* **Pagination:** Easily navigate through large amounts of tickets.
+## ✨ Funkcjonalności systemu
+* **Zarządzanie zgłoszeniami:** Tworzenie, przeglądanie, przypisywanie pracowników oraz zmiana statusów (Nowe -> W trakcie -> Zakończone).
+* **Obsługa załączników:** Możliwość wgrywania plików (JPG, PNG, PDF, TXT, ZIP) do 5MB z automatyczną walidacją rozszerzeń i rozmiaru po stronie serwera.
+* **System komentarzy:** Dynamiczna historia korespondencji wewnątrz każdego zgłoszenia pomiędzy klientem a obsługą techniczną.
+* **Bezpieczeństwo i architektura:**
+  * Haszowanie haseł za pomocą bezpiecznego algorytmu `PASSWORD_BCRYPT`.
+  * Zastosowanie wzorca PRG (Post-Redirect-Get) wraz z komunikatami Flash, co zapobiega ponownemu przesyłaniu formularzy przy odświeżaniu strony.
+  * Pełna walidacja i oczyszczanie danych wejściowych (`trim`, `filter_var`).
+  * Ochrona podstron panelu oparta na sesjach (brak dostępu dla osób niezalogowanych lub bez odpowiednich uprawnień).
+* **Paginacja i filtry:** Stronicowanie listy zgłoszeń (limit 15 na stronę) ułatwiające zarządzanie dużą ilością danych.
 
-## 👥 User Roles
-The system uses three distinct roles to manage permissions:
-1. **Administrator (`admin`)** - Full access, manages users, categories, and system reports.
-2. **Employee / Support Staff (`user`)** - Views, assigns, and resolves tickets, replies to clients.
-3. **Client (`guest`)** - Registers accounts, creates tickets, uploads attachments.
+## 👥 Role użytkowników
+1. **Administrator (`admin`):** Pełny dostęp do systemu. Zarządza kontami użytkowników (dodawanie, edycja danych, blokowanie, wymuszenie zmiany hasła, reset hasła do "Start123!"), tworzy i usuwa kategorie zgłoszeń oraz przegląda raporty i statystyki obciążenia systemu.
+2. **Pracownik / Wsparcie (`user`):** Posiada wgląd do wszystkich ticketów w systemie. Może przypisać zgłoszenie do siebie lub innego pracownika, aktualizować statusy oraz odpowiadać klientom.
+3. **Klient / Gość (`guest` / niezalogowany):** Może zarejestrować konto, tworzyć nowe zgłoszenia z załącznikami oraz śledzić status i korespondencję swojego zgłoszenia bez logowania (za pomocą unikalnego numeru ID zgłoszenia).
 
-## 🚀 Installation & Configuration (Local Setup)
-This project is built to run on a standard LAMP/WAMP/XAMPP stack.
+## 🚀 Instalacja
+Projekt jest w pełni przystosowany do uruchomienia w lokalnym środowisku programistycznym (np. XAMPP).
 
-1. **Clone the repository:**
-   Download the project and place it inside your local server's document root (e.g., `C:\xampp\htdocs\helpdesk`).
+1. **Umieszczenie plików projektu:**
+   Pobierz kod projektu i umieść go w katalogu głównym serwera Apache (np. `C:\xampp\htdocs\helpdesk`).
 
-2. **Directory Permissions:**
-   Ensure that the directory responsible for storing file attachments has write permissions.
-   * Directory: `[podaj ścieżkę do folderu, np. /uploads/attachments/]`
-   * Permissions: Set `chmod 777` (or ensure the web server user has write access).
+2. **Uprawnienia katalogów:**
+   System wymaga uprawnień zapisu do przechowywania przesyłanych przez użytkowników załączników.
+   * **Katalog docelowy:** `uploads/`
+   * **Wymagane uprawnienia:** Należy upewnić się, że proces serwera WWW ma uprawnienia do zapisu w tym folderze (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
 
-3. **Set up the Database:**
-   * Open **phpMyAdmin**.
-   * Create a new, empty database named `helpdesk`.
-   * Import the `helpdesk.sql` file located in the `database/` folder.
+3. **Konfiguracja bazy danych:**
+   * Uruchom serwer MySQL i przejdź do panelu **phpMyAdmin** (`http://localhost/phpmyadmin`).
+   * Utwórz nową, pustą bazę danych o nazwie `helpdesk` z kodowaniem `utf8mb4_unicode_ci`.
+   * Przejdź do zakładki *Import*, wybierz plik struktury `helpdesk.sql` (znajdujący się w folderze `database/`) i zatwierdź import.
 
-4. **Configure the connection:**
-   * By default, the system assumes a standard XAMPP configuration (user: `root`, password: *empty*).
-   * Update credentials in `config.php` if necessary.
+4. **Konfiguracja połączenia z bazą:**
+   * Aplikacja domyślnie korzysta ze standardowych danych dostępowych XAMPP (użytkownik: `root`, hasło: *brak*). W razie konieczności zmiany danych, zaktualizuj plik `config.php`.
 
-5. **Launch the Application:**
-   * Go to: `http://localhost/helpdesk/login.php`
+5. **Uruchomienie aplikacji:**
+   * Otwórz przeglądarkę internetową i przejdź pod adres: `http://localhost/helpdesk/login.php`
 
-## 📚 External Libraries Used
-* Bootstrap (version [5.3.0])
-* jQuery (version [3.7.0])
+## ✍️ Autorzy
+* **Natalia Flaszka**
+  * *nr albumu:* 420530
+  * *login z manticore'y:* flaszkan
+* **Zuzanna Jonczyk**
+  * *nr albumu:* 420537
+  * *login z manticore'y:* jonczyk
 
-## ✍️ Author
-* **Natalia Flaszka & Zuzanna Jonczyk**
-* *Student ID (nr albumu): 420530 & 420537*
-* *Manticore Login: flaszkan & jonczyk*
+## 📚 Wykorzystane zewnętrzne biblioteki
+* Bootstrap (wersja **5.3.3**)
