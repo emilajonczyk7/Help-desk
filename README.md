@@ -3,7 +3,7 @@
 Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wykorzystaniem bazy danych MySQL/MariaDB. Aplikacja pozwala klientom (również niezalogowanym gościom) na przesyłanie zgłoszeń wsparcia, bezpieczne dodawanie załączników oraz dwustronną komunikację z działem obsługi. Administratorzy posiadają pełny panel zarządzania użytkownikami, kategoriami zgłoszeń oraz wgląd w statystyki systemu.
 
 ## 💻 Wymagania systemowe
-* Wersja Apache: **2.4.x** * Wersja PHP: **8.2.12**
+* Wersja Apache: **2.4.58** * Wersja PHP: **8.2.12**
 * Wersja MySQL: **10.4.32-MariaDB**
 
 ## ✨ Funkcjonalności systemu
@@ -24,25 +24,22 @@ Autorski, nowoczesny system zgłoszeń (Help Desk) stworzony w języku PHP z wyk
 
 ## 🚀 Instalacja i wdrożenie na serwerze
 
+System został wyposażony w automatyczny instalator środowiska, co eliminuje potrzebę ręcznego importowania bazy danych przez phpMyAdmin.
+
 1. **Umieszczenie plików projektu:**
-   Pobierz kod projektu i umieść go w katalogu głównym serwera WWW (np. `public_html`, `htdocs` lub główny folder domeny).
+   Prześlij zawartość projektu do katalogu głównego serwera WWW (np. `public_html`).
 
 2. **Uprawnienia katalogów:**
-   System wymaga uprawnień zapisu do przechowywania przesyłanych przez użytkowników załączników. Należy upewnić się, że proces serwera ma uprawnienia do zapisu w folderze `uploads/` (w środowiskach Linux/serwerowych należy nadać uprawnienie `chmod 777 uploads/`).
+   Upewnij się, że proces serwera posiada uprawnienia do zapisu w folderze `uploads/` (w środowiskach Linux zalecane `chmod 755` lub `777` w zależności od konfiguracji serwera).
 
-3. **Inicjalizacja bazy danych:**
-   * Utwórz nową bazę danych w panelu hostingowym lub poprzez phpMyAdmin.
-   * Przejdź do zakładki "Import" w phpMyAdmin i wgraj plik struktury bazy danych znajdujący się w projekcie: `database/helpdesk.sql`.
+3. **Konfiguracja połączenia z bazą:**
+   Otwórz plik `config.php` i uzupełnij zmienne `$db_user`, `$db_password` oraz `$db_name` zgodnie z danymi dostępowymi do Twojej bazy danych MySQL na serwerze.
 
-4. **Konfiguracja połączenia z bazą:**
-   * Otwórz plik `config.php` (znajdujący się w głównym katalogu) i zaktualizuj dane dostępowe do nowo utworzonej bazy danych (zmienne: `$db_host`, `$db_user`, `$db_password`, `$db_name`).
-
-5. **Weryfikacja środowiska:**
-   * Projekt zawiera wbudowany skrypt weryfikujący (plik `index.php`), który uruchamia się domyślnie po wejściu na główny adres aplikacji (np. `http://10.6.253.19/~jonczyk/`). 
-   * Pełni on funkcję testera połączenia z bazą – jego uruchomienie potwierdzi prawidłową konfigurację środowiska.
-
-6. **Uruchomienie aplikacji:**
-   * Jeśli skrypt weryfikujący wyświetla zielone komunikaty, aplikacja jest gotowa do działania. Przejdź pod adres domeny z dopiskiem `/login.php` (lub kliknij przycisk na ekranie weryfikatora), aby rozpocząć korzystanie z systemu.
+4. **Automatyczna inicjalizacja:**
+   Wejdź na adres główny swojej aplikacji (np. `http://10.6.253.19/~jonczyk/`).
+   * System automatycznie uruchomi instalator, który nawiąże połączenie z bazą danych.
+   * Instalator samodzielnie wgra strukturę tabel oraz dane testowe z pliku `database/helpdesk.sql`.
+   * Po wyświetleniu zielonych komunikatów o sukcesie, kliknij przycisk "Przejdź do strony logowania", aby rozpocząć korzystanie z systemu.
 
 ## ✍️ Autorzy
 * **Natalia Flaszka**
